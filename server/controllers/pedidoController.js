@@ -2,7 +2,14 @@ import pkg from "@klever/sdk";
 const Transaction = pkg.Transaction;
 import fetch from "node-fetch";
 import axios from "axios";
-import { sanitizeInput } from "../utils/sanitize.js";
+import { 
+  sanitizeInput, 
+  validateEmail, 
+  validatePhone, 
+  validateTxHash, 
+  validatePedidoData,
+  sanitizeTransactionData 
+} from "../utils/sanitize.js";
 import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
 import { gerarPayloadKlever } from "../services/kleverService.js";
 import { Account, TransactionType } from "@klever/sdk-node";
@@ -52,35 +59,33 @@ async function obterCotacaoKLV() {
 }
 
 export async function criarPedido(req, res) {
-  console.log("Recebido pedido:", req.body); 
   const { pedidosCollection, ASAAS_API } = req.app.locals;
   const pedido = req.body;
 
-  // validação 
-  if (
-    !pedido.cliente ||
-    !pedido.email ||
-    !pedido.celular ||
-    !pedido.pagamento ||
-    !Array.isArray(pedido.itens) ||
-    pedido.itens.length === 0
-  ) {
+  // Validação básica de estrutura
+  if (!pedido || typeof pedido !== 'object') {
     return res.status(400).json({ erro: "Dados do pedido inválidos." });
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pedido.email)) {
-    return res.status(400).json({ erro: "E-mail inválido." });
-  }
-  if (!/^\d{10,11}$/.test(pedido.celular)) {
-    return res.status(400).json({ erro: "Celular inválido. Use DDD + número, só números." });
+  // Validação completa usando função específica
+  const validacao = validatePedidoData(pedido);
+  if (!validacao.isValid) {
+    return res.status(400).json({ 
+      erro: "Dados inválidos", 
+      detalhes: validacao.errors 
+    });
   }
 
+  // Sanitização de dados
   pedido.cliente = sanitizeInput(pedido.cliente);
   pedido.email = sanitizeInput(pedido.email);
   pedido.celular = sanitizeInput(pedido.celular.replace(/\D/g, "")); 
 
-  if (!/^\d{11}$/.test(pedido.celular)) {
-    return res.status(400).json({ erro: "Celular inválido. Use DDD + número, só números (ex: 71999999999)." });
+  // Validação específica do celular brasileiro
+  if (!/^[1-9]\d{10}$/.test(pedido.celular)) {
+    return res.status(400).json({ 
+      erro: "Celular inválido. Use formato: DDD + 9 dígitos (ex: 71999999999)." 
+    });
   }
 
   let totalCalculado = 0;
@@ -206,23 +211,62 @@ export async function pagamentoWebhook(req, res) {
   const body = req.body;
 
   try {
+    // Validação básica do webhook
+    if (!body || typeof body !== 'object') {
+      console.warn("❌ Webhook inválido recebido:", body);
+      return res.status(400).json({ erro: "Dados do webhook inválidos" });
+    }
+
+    // Validar IP do Asaas (opcional - adicione IPs permitidos)
+    const ipPermitidos = [
+      '18.229.220.181',
+      '18.231.194.64', 
+      '52.67.73.39'
+    ];
+    
+    const clientIP = req.ip || req.connection.remoteAddress;
+    // Remover verificação de IP em desenvolvimento
+    // if (!ipPermitidos.includes(clientIP)) {
+    //   console.warn("❌ Webhook de IP não autorizado:", clientIP);
+    //   return res.status(403).json({ erro: "IP não autorizado" });
+    // }
+
     if (body.event === "PAYMENT_CONFIRMED") {
       const pagamento = body.payment;
-      const pedidoId = pagamento.externalReference;
+      
+      if (!pagamento || !pagamento.externalReference) {
+        console.warn("❌ Webhook sem referência externa:", body);
+        return res.status(400).json({ erro: "Referência externa ausente" });
+      }
+
+      const pedidoId = sanitizeInput(pagamento.externalReference);
 
       const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
       const pedido = pedidoDoc.data();
 
       if (pedido && pedido.cliente && pedido.total) {
-        await pedidosCollection.doc(pedidoId).update({ status: "a fazer" }); 
-        enviarWhatsAppPedido(pedido);
-        console.log("Pagamento confirmado - status atualizado e WhatsApp enviado");
+        // Verificar se já foi processado
+        if (pedido.status === "a fazer" || pedido.status === "pago") {
+          console.log("✅ Pedido já processado:", pedidoId);
+          return res.sendStatus(200);
+        }
+
+        await pedidosCollection.doc(pedidoId).update({ 
+          status: "a fazer",
+          confirmedAt: new Date().toISOString(),
+          paymentId: sanitizeInput(pagamento.id || "")
+        }); 
+        
+        await enviarWhatsAppPedido(pedido);
+        console.log("✅ Pagamento confirmado - status atualizado e WhatsApp enviado");
       } else {
-        console.warn("Pedido não encontrado ou incompleto no webhook:", pedidoId);
+        console.warn("❌ Pedido não encontrado ou incompleto no webhook:", pedidoId);
+        return res.status(404).json({ erro: "Pedido não encontrado" });
       }
     }
   } catch (err) {
-    console.error("Erro no webhook:", err);
+    console.error("❌ Erro no webhook:", err.message);
+    return res.status(500).json({ erro: "Erro interno" });
   }
 
   res.sendStatus(200);
@@ -316,44 +360,73 @@ export async function atualizarStatusPedido(req, res) {
   }
 }
 
-// Substitua o trecho de cotação do KLV em criarPedidoCripto para usar apenas Moralis
 export async function criarPedidoCripto(req, res) {
   const { pedidosCollection } = req.app.locals;
   try {
     const { pedido, txHash } = req.body;
 
+    // Validação básica
     if (!pedido || !txHash) {
-      console.warn("❌ Pedido ou hash ausentes na requisição:", req.body);
       return res.status(400).json({ erro: "Pedido ou txHash ausentes." });
+    }
+
+    // Validação do hash da transação
+    if (!validateTxHash(txHash)) {
+      return res.status(400).json({ 
+        erro: "Hash da transação inválido. Deve conter 64 caracteres hexadecimais." 
+      });
+    }
+
+    // Validação completa do pedido
+    const validacao = validatePedidoData(pedido);
+    if (!validacao.isValid) {
+      return res.status(400).json({ 
+        erro: "Dados do pedido inválidos", 
+        detalhes: validacao.errors 
+      });
+    }
+
+    // Verificar se o hash já foi usado
+    const hashExistente = await pedidosCollection
+      .where('txHash', '==', txHash)
+      .limit(1)
+      .get();
+    
+    if (!hashExistente.empty) {
+      return res.status(409).json({ 
+        erro: "Esta transação já foi processada." 
+      });
     }
 
     const cotacaoBRL = await obterCotacaoKLV();
     if (!cotacaoBRL || cotacaoBRL <= 0) {
       return res.status(503).json({
-        erro: "Cotação do KLV indisponível no momento. Tente novamente em instantes.",
-        detalhe: cotacaoBRL
+        erro: "Cotação do KLV indisponível no momento. Tente novamente em instantes."
       });
     }
 
     const valorKLV = pedido.total / cotacaoBRL;
     const valorInteiro = Math.floor(valorKLV * 1e6);
 
-    const pedidoId = pedido.id || `pedido-${Date.now()}`;
+    const pedidoId = pedido.id || `pedido-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const pedidoSalvo = {
       ...pedido,
       id: pedidoId,
       txHash,
       valorKLV: valorInteiro,
-      status: "pendente"
+      status: "pendente",
+      createdAt: new Date().toISOString(),
+      ipAddress: req.ip || req.connection.remoteAddress
     };
 
     await pedidosCollection.doc(pedidoId).set(pedidoSalvo);
 
+    // Iniciar monitoramento sem aguardar
     monitorarTransacaoKlever(pedidoId, txHash, pedidosCollection, pedidoSalvo);
 
     res.json({ pedidoId, hash: txHash });
   } catch (erro) {
-    console.error("❌ Erro no back-end ao processar pedido:", erro);
+    console.error("❌ Erro no back-end ao processar pedido:", erro.message);
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 }
@@ -364,42 +437,62 @@ async function monitorarTransacaoKlever(pedidoId, hash, pedidosCollection, pedid
 
   const intervalo = setInterval(async () => {
     try {
-      const res = await fetch(`https://api.mainnet.klever.org/v1.0/transaction/${hash}`);
+      const res = await fetch(`https://api.mainnet.klever.org/v1.0/transaction/${hash}`, {
+        headers: {
+          'User-Agent': 'PapudimApp/1.0',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
       const tx = await res.json();
-      console.log("🟡 [Klever] Resposta para hash", hash, ":", JSON.stringify(tx));
+      
+      // Sanitizar dados da transação
+      const txSanitizada = sanitizeTransactionData(tx.data?.transaction || tx);
 
-      const statusKlever =
-        tx.data?.transaction?.status?.toLowerCase?.() ||
-        tx.status?.toLowerCase?.() ||
-        tx.data?.status?.toLowerCase?.() ||
-        tx.result?.status?.toLowerCase?.();
+      const statusKlever = txSanitizada?.status?.toLowerCase?.();
+      const resultCode = txSanitizada?.resultCode;
 
-      const resultCode =
-        tx.data?.transaction?.resultCode ||
-        tx.resultCode ||
-        tx.data?.resultCode;
-
-      console.log("🔎 statusKlever:", statusKlever, "| resultCode:", resultCode);
+      // Validar se a transação é legítima
+      if (txSanitizada?.hash && txSanitizada.hash !== hash) {
+        console.warn("⚠️ Hash da transação não confere:", hash, "vs", txSanitizada.hash);
+        clearInterval(intervalo);
+        return;
+      }
 
       if (
         (statusKlever === "success" || statusKlever === "successful" || statusKlever === "confirmed") &&
         (resultCode === "Ok" || resultCode === "ok")
       ) {
-        console.log("✅ Entrou no if success. Vai atualizar status e enviar WhatsApp.");
+        // Verificar novamente se o pedido não foi processado (race condition)
+        const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
+        const pedidoAtual = pedidoDoc.data();
 
-        await pedidosCollection.doc(pedidoId).update({ status: "a fazer" });
+        if (pedidoAtual?.status === "a fazer" || pedidoAtual?.status === "pago") {
+          console.log("✅ Pedido já foi processado anteriormente:", pedidoId);
+          clearInterval(intervalo);
+          return;
+        }
+
+        await pedidosCollection.doc(pedidoId).update({ 
+          status: "a fazer",
+          confirmedAt: new Date().toISOString(),
+          transactionData: txSanitizada
+        });
 
         // Busca o pedido atualizado do Firestore para garantir todos os campos
-        const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
-        const pedidoAtualizado = pedidoDoc.exists ? pedidoDoc.data() : pedidoOriginal;
-        pedidoAtualizado.status = "a fazer";
+        const pedidoDocAtualizado = await pedidosCollection.doc(pedidoId).get();
+        const pedidoFinal = pedidoDocAtualizado.exists ? pedidoDocAtualizado.data() : pedidoOriginal;
+        pedidoFinal.status = "a fazer";
 
         try {
-          console.log("🚀 Chamando enviarWhatsAppPedido...");
-          await enviarWhatsAppPedido(pedidoAtualizado);
-          console.log("✅ enviarWhatsAppPedido executado.");
+          await enviarWhatsAppPedido(pedidoFinal);
+          console.log("✅ WhatsApp enviado para pedido:", pedidoId);
         } catch (e) {
-          console.error("❌ Erro ao enviar WhatsApp após confirmação:", e.message);
+          console.error("❌ Erro ao enviar WhatsApp:", e.message);
         }
 
         clearInterval(intervalo);
@@ -411,6 +504,16 @@ async function monitorarTransacaoKlever(pedidoId, hash, pedidosCollection, pedid
     if (++tentativas >= max) {
       clearInterval(intervalo);
       console.warn("Timeout ao monitorar hash:", hash);
+      
+      // Marcar como timeout no banco
+      try {
+        await pedidosCollection.doc(pedidoId).update({ 
+          status: "timeout",
+          timeoutAt: new Date().toISOString()
+        });
+      } catch (e) {
+        console.error("Erro ao marcar timeout:", e.message);
+      }
     }
   }, 10000);
 }

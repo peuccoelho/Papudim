@@ -8,13 +8,43 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import admin from "firebase-admin";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 // rotas
 import pedidoRoutes from "./routes/pedidoRoutes.js";
 import { loginLimiter, pedidoLimiter, globalLimiter, adminLimiter } from "./middlewares/rateLimit.js";
+import { SECURITY_CONFIG, validateSecurityConfig } from "./config/security.js";
 
 dotenv.config();
-console.log("Token carregado:", process.env.access_token?.slice(0, 10) + "...");
+
+// Validar configurações de segurança no startup
+try {
+  validateSecurityConfig();
+} catch (error) {
+  console.error('❌ Erro de configuração:', error.message);
+  process.exit(1);
+}
+
+// Validar variáveis de ambiente críticas
+const requiredEnvVars = [
+  'JWT_SECRET', 
+  'access_token', 
+  'FIREBASE_CONFIG_JSON',
+  'CALLMEBOT_NUMERO',
+  'CALLMEBOT_APIKEY'
+];
+
+requiredEnvVars.forEach(envVar => {
+  if (!process.env[envVar]) {
+    console.error(`❌ Variável de ambiente obrigatória ausente: ${envVar}`);
+    process.exit(1);
+  }
+});
+
+// Não logar tokens completos em produção
+if (process.env.NODE_ENV !== 'production') {
+  console.log("Token carregado:", process.env.access_token?.slice(0, 10) + "...");
+}
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG_JSON);
 
@@ -30,55 +60,116 @@ const __dirname = dirname(__filename);
 
 const app = express();
 app.set('trust proxy', 1);
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET;
-const DB_FILE = path.join(__dirname, "pedidos.json");
 
 const access_token = process.env.access_token;
-const ASAAS_API = "https://api-sandbox.asaas.com/";
+const ASAAS_API = process.env.NODE_ENV === 'production' 
+  ? "https://api.asaas.com/" 
+  : "https://api-sandbox.asaas.com/";
+
+// CORS mais restritivo
+const allowedOrigins = [
+  "https://papudim.netlify.app",
+  "https://papudim.com"
+];
+
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push("http://localhost:5173");
+  allowedOrigins.push("http://localhost:3000");
+}
 
 app.use(cors({
-  origin: ["https://papudim.netlify.app", "http://localhost:5173"],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Não permitido pelo CORS'));
+    }
+  },
   credentials: true,
 }));
 
 
 app.use(express.json({ limit: "200kb" }));
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
+      fontSrc: ["'self'", "fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'"],
+    },
+  },
+}));
+app.use(globalLimiter);
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  // Log mais seguro sem dados sensíveis
+  const logData = {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+    userAgent: req.get('User-Agent')?.slice(0, 100) // Limitar tamanho
+  };
+  console.log(JSON.stringify(logData));
   next();
 });
 
-if (!fs.existsSync(DB_FILE)) {
-  fs.writeFileSync(DB_FILE, "[]");
-}
+// Rate limiter específico para login
+const loginRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5, // máximo 5 tentativas por IP
+  message: { erro: "Muitas tentativas de login. Tente novamente em 15 minutos." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-const tentativasLogin = {};
+const tentativasLogin = new Map();
 const MAX_TENTATIVAS = 5;
-const BLOQUEIO_MINUTAS = 10;
+const BLOQUEIO_MINUTAS = 15;
 
-// login admin com rate limit
-app.post("/api/login", loginLimiter, (req, res) => {
+// login admin com melhor segurança
+app.post("/api/login", loginRateLimit, (req, res) => {
   const ip = req.ip;
-  tentativasLogin[ip] = tentativasLogin[ip] || { count: 0, bloqueadoAte: null };
+  const { senha } = req.body;
 
-  if (tentativasLogin[ip].bloqueadoAte && Date.now() < tentativasLogin[ip].bloqueadoAte) {
-    return res.status(429).json({ erro: "Muitas tentativas. Tente novamente mais tarde." });
+  if (!senha || typeof senha !== 'string') {
+    return res.status(400).json({ erro: "Senha é obrigatória" });
   }
 
-  const { senha } = req.body;
-  if (senha === "papudim123") {
-    tentativasLogin[ip] = { count: 0, bloqueadoAte: null };
-    const token = jwt.sign({ admin: true }, SECRET_KEY, { expiresIn: "12h" });
+  const agora = Date.now();
+  const tentativa = tentativasLogin.get(ip) || { count: 0, bloqueadoAte: null };
+
+  if (tentativa.bloqueadoAte && agora < tentativa.bloqueadoAte) {
+    const minutosRestantes = Math.ceil((tentativa.bloqueadoAte - agora) / (60 * 1000));
+    return res.status(429).json({ 
+      erro: `IP bloqueado. Tente novamente em ${minutosRestantes} minutos.` 
+    });
+  }
+
+  // Verificar senha - use hash em produção
+  const senhaCorreta = process.env.ADMIN_PASSWORD || "papudim123";
+  if (senha === senhaCorreta) {
+    tentativasLogin.delete(ip);
+    const token = jwt.sign(
+      { admin: true, ip, timestamp: agora }, 
+      SECRET_KEY, 
+      { expiresIn: "8h" }
+    );
     return res.json({ token });
   }
 
-  tentativasLogin[ip].count++;
-  if (tentativasLogin[ip].count >= MAX_TENTATIVAS) {
-    tentativasLogin[ip].bloqueadoAte = Date.now() + BLOQUEIO_MINUTAS * 60 * 1000;
+  // Senha incorreta
+  tentativa.count++;
+  if (tentativa.count >= MAX_TENTATIVAS) {
+    tentativa.bloqueadoAte = agora + BLOQUEIO_MINUTAS * 60 * 1000;
   }
-  return res.status(401).json({ erro: "Senha incorreta" });
+  tentativasLogin.set(ip, tentativa);
+
+  return res.status(401).json({ erro: "Credenciais inválidas" });
 });
 
 app.locals.pedidosCollection = pedidosCollection;
