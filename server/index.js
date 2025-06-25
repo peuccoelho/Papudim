@@ -151,7 +151,7 @@ app.post("/api/login", loginRateLimit, (req, res) => {
   }
 
   // Verificar senha - use hash em produção
-  const senhaCorreta = process.env.ADMIN_PASSWORD || "papudim123";
+  const senhaCorreta = process.env.ADMIN_PASSWORD;
   if (senha === senhaCorreta) {
     tentativasLogin.delete(ip);
     const token = jwt.sign(

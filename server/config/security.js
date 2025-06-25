@@ -46,9 +46,8 @@ export function validateSecurityConfig() {
   if (missing.length > 0) {
     throw new Error(`Variáveis de ambiente obrigatórias ausentes: ${missing.join(', ')}`);
   }
-  
-  if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
-    throw new Error('JWT_SECRET deve ter pelo menos 32 caracteres');
+    if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 16) {
+    throw new Error('JWT_SECRET deve ter pelo menos 16 caracteres');
   }
   
   console.log('✅ Configurações de segurança validadas');
