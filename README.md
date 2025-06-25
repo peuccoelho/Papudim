@@ -20,6 +20,7 @@ O Papudim permite que clientes façam pedidos personalizados de pudins, acompanh
 - **Backend:** Node.js, Express, Firebase Firestore, JWT, dotenv, helmet, cors, node-fetch
 - **Microsserviço de Insights:** Python (Flask), integração via HTTP
 - **APIs Externas:**
+  - **Klever API:** Transações com criptomoeda 
   - **Asaas API:** Emissão de cobranças e pagamentos (PIX, cartão)
   - **Firebase Firestore:** Armazenamento dos pedidos
   - **CallMeBot API:** Notificações via WhatsApp
@@ -33,6 +34,7 @@ O Papudim permite que clientes façam pedidos personalizados de pudins, acompanh
 - Página inicial e cardápio interativo
 - Carrinho de compras com validação de pedido mínimo
 - Checkout com integração de pagamento (PIX/Cartão)
+- Transação com um click por cripto
 - Página de status do pedido e feedback de pagamento
 - Painel administrativo protegido por login (JWT)
 - Exportação de pedidos em CSV
