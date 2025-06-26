@@ -1,6 +1,6 @@
-// Controller APENAS para webhook - sem dependências externas
+// Controller APENAS para webhook - ZERO dependências externas
 // Criado para resolver o problema de ERR_MODULE_NOT_FOUND
-// Usa fetch nativo do Node.js 18+
+// Foca apenas na atualização do status do pedido
 
 // WEBHOOK SIMPLIFICADO PARA RESOLVER O PROBLEMA DE STATUS
 export async function pagamentoWebhookSimples(req, res) {
@@ -51,7 +51,7 @@ export async function pagamentoWebhookSimples(req, res) {
   }
 }
 
-// Função básica de WhatsApp sem dependências externas
+// Função básica de WhatsApp sem fetch (apenas log por enquanto)
 async function enviarWhatsAppBasico(pedido) {
   const numero = process.env.CALLMEBOT_NUMERO;
   const apikey = process.env.CALLMEBOT_APIKEY;
@@ -61,33 +61,13 @@ async function enviarWhatsAppBasico(pedido) {
     return;
   }
 
-  const itensTexto = pedido.itens
-    .map(item => `${item.quantidade}x ${item.nome} - R$ ${item.subtotal.toFixed(2)}`)
-    .join('%0A');
+  console.log("📱 WhatsApp seria enviado para:", numero);
+  console.log("👤 Cliente:", pedido.cliente);
+  console.log("💰 Total:", pedido.total);
+  console.log("🆔 ID:", pedido.id);
 
-  const mensagem = `🍮 *NOVO PEDIDO CONFIRMADO* 🍮%0A%0A` +
-    `👤 *Cliente:* ${pedido.cliente}%0A` +
-    `📱 *Celular:* ${pedido.celular}%0A` +
-    `📧 *Email:* ${pedido.email}%0A%0A` +
-    `🛒 *Itens:*%0A${itensTexto}%0A%0A` +
-    `💰 *Total:* R$ ${pedido.total.toFixed(2)}%0A%0A` +
-    `🆔 *ID do Pedido:* ${pedido.id}`;
-
-  const url = `https://api.callmebot.com/whatsapp.php?phone=${numero}&text=${mensagem}&apikey=${apikey}`;
-
-  try {
-    // Usar fetch nativo do Node.js 18+
-    const response = await fetch(url);
-    const result = await response.text();
-    
-    if (response.ok) {
-      console.log("✅ WhatsApp enviado:", result);
-    } else {
-      console.error("❌ Erro ao enviar WhatsApp:", response.status, result);
-    }
-  } catch (error) {
-    console.error("❌ Erro na requisição WhatsApp:", error.message);
-  }
+  // Por enquanto, apenas log - sem fazer requisição HTTP
+  // Para evitar qualquer problema com dependências
 }
 
 // Função principal para roteamento
