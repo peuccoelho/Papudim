@@ -8,11 +8,15 @@ export async function pagamentoWebhookSimples(req, res) {
   console.log("🟢 Body:", JSON.stringify(req.body, null, 2));
   console.log("🟢 IP:", req.ip);
   console.log("🟢 Timestamp:", new Date().toISOString());
+    const { pedidosCollection } = req.app.locals;
   
-  const { pedidosCollection } = req.app.locals;
+  console.log("🟢 pedidosCollection disponível?", !!pedidosCollection);
   
   try {
     const { event, payment } = req.body || {};
+    
+    console.log("🟢 Event:", event);
+    console.log("🟢 Payment:", payment);
     
     // Aceitar qualquer evento de pagamento
     if (event && event.includes('PAYMENT') && payment?.externalReference) {
@@ -20,11 +24,15 @@ export async function pagamentoWebhookSimples(req, res) {
       console.log("🟢 Processando pedido:", pedidoId);
       
       const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
+      console.log("🟢 Pedido existe?", pedidoDoc.exists);
       
       if (pedidoDoc.exists) {
         const pedido = pedidoDoc.data();
+        console.log("🟢 Status atual:", pedido.status);
         
         if (pedido.status !== "a fazer" && pedido.status !== "pago") {
+          console.log("🟢 Tentando atualizar status...");
+          
           await pedidosCollection.doc(pedidoId).update({
             status: "a fazer",
             confirmedAt: new Date().toISOString(),
@@ -39,8 +47,14 @@ export async function pagamentoWebhookSimples(req, res) {
           } catch (err) {
             console.log("⚠️ WhatsApp falhou:", err.message);
           }
+        } else {
+          console.log("🟢 Status já atualizado:", pedido.status);
         }
+      } else {
+        console.log("🔴 Pedido não encontrado:", pedidoId);
       }
+    } else {
+      console.log("🔴 Evento ou externalReference inválido");
     }
     
     res.status(200).json({ success: true });

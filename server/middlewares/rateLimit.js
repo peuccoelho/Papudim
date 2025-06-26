@@ -56,3 +56,12 @@ export const webhookLimiter = rateLimit({
     return req.skipRateLimit === true;
   }
 });
+
+// Rate limiter específico para consultas de status - mais permissivo
+export const statusLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 30, // 30 consultas por 15 minutos
+  message: { erro: "Muitas consultas de status. Tente novamente em alguns minutos." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
