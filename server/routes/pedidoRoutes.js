@@ -1,6 +1,6 @@
 import express from "express";
 import { criarPedido, statusPedido, adminPedidos, atualizarStatusPedido, criarPedidoCripto, testeWebhook } from "../controllers/pedidoController.js";
-import { pagamentoWebhookSimples } from "../controllers/pedidoControllerSimples.js";
+import { pagamentoWebhookSimples } from "../controllers/pedidoControllerWebhook.js";
 import { autenticar } from "../middlewares/authMiddleware.js";
 import { pedidoLimiter, webhookLimiter, adminLimiter } from "../middlewares/rateLimit.js";
 

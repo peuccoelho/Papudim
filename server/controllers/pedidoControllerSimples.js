@@ -1,11 +1,6 @@
+// Controller simplificado apenas para webhook - sem dependências externas
+// Removidas todas as importações desnecessárias para evitar ERR_MODULE_NOT_FOUND
 import fetch from "node-fetch";
-import { validatePedidoData, sanitizeInput } from "../utils/sanitize.js";
-import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
-import { gerarPayloadKlever } from "../services/kleverService.js";
-import pkg from 'kleverchain-sdk';
-import admin from 'firebase-admin';
-
-const { Transaction } = pkg;
 
 const PRECOS_PRODUTOS = {
   "Pudim de Café": 8.6,
