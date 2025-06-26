@@ -3,10 +3,12 @@
 ## URLs dos Webhooks
 
 ### Produção
+
 - **URL do Webhook:** `https://homepudimback.onrender.com/api/pagamento-webhook`
 - **Health Check:** `https://homepudimback.onrender.com/api/webhook-health`
 
 ### Desenvolvimento
+
 - **URL do Webhook:** `http://localhost:3000/api/pagamento-webhook`
 - **Health Check:** `http://localhost:3000/api/webhook-health`
 
@@ -22,6 +24,7 @@
 ## Eventos Suportados
 
 O webhook aceita os seguintes eventos do Asaas:
+
 - `PAYMENT_CONFIRMED` - Pagamento confirmado
 - `PAYMENT_RECEIVED` - Pagamento recebido
 - `PAYMENT_APPROVED` - Pagamento aprovado
@@ -40,7 +43,7 @@ O webhook aceita os seguintes eventos do Asaas:
     "id": "pay_123456789",
     "externalReference": "pedido-1234567890",
     "status": "RECEIVED",
-    "value": 100.00,
+    "value": 100.0,
     "dateCreated": "2025-06-26T00:00:00.000Z",
     "customer": {
       "id": "cus_123456789",
@@ -91,6 +94,7 @@ node check-status.js
 ## Logs
 
 O webhook gera logs detalhados que podem ser visualizados nos logs do Render:
+
 - `🚨` Logs de entrada do webhook
 - `🔔` Logs de processamento
 - `✅` Logs de sucesso
@@ -99,15 +103,18 @@ O webhook gera logs detalhados que podem ser visualizados nos logs do Render:
 ## Troubleshooting
 
 ### Webhook não está sendo chamado
+
 1. Verifique se a URL está configurada corretamente no Asaas
 2. Teste o health check: `https://homepudimback.onrender.com/api/webhook-health`
 3. Verifique os logs do servidor para ver se há tentativas de conexão
 
 ### Pedido não está sendo atualizado
+
 1. Verifique se o `externalReference` no webhook corresponde ao ID do pedido
 2. Verifique se o evento está na lista de eventos aceitos
 3. Teste o webhook manualmente para validar a lógica
 
 ### Erro de CORS
+
 - O webhook tem middleware específico que bypassa as restrições de CORS
 - Webhooks não enviam Origin header, então são aceitos automaticamente

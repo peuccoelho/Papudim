@@ -44,11 +44,15 @@ export const adminLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiter específico para webhooks
+// Rate limiter específico para webhooks - muito permissivo
 export const webhookLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minuto
-  max: 20, // 20 webhooks por minuto
+  max: 100, // 100 webhooks por minuto (bem permissivo)
   message: { erro: "Muitos webhooks. Tente novamente mais tarde." },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Pular rate limit se skipRateLimit foi definido no middleware
+    return req.skipRateLimit === true;
+  }
 });

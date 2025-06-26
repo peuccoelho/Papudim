@@ -79,6 +79,25 @@ if (process.env.NODE_ENV !== 'production') {
   allowedOrigins.push("http://localhost:3000");
 }
 
+// Middleware especial para webhooks (antes do CORS e rate limiting)
+app.use('/api/pagamento-webhook', (req, res, next) => {
+  // Headers específicos para webhooks - bypassa todas as restrições
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, User-Agent');
+  
+  console.log("🔗 Webhook middleware aplicado - CORS e Rate Limit bypassados");
+  
+  // Bypass rate limiting para webhooks do Asaas
+  req.skipRateLimit = true;
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
 app.use(cors({
   origin: function (origin, callback) {
     // Permitir requests sem origin (webhooks, Postman, etc.)
@@ -87,25 +106,15 @@ app.use(cors({
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      // Log origins rejeitadas para debug
-      console.log("🚫 Origin rejeitada pelo CORS:", origin);
+      // Log origins rejeitadas para debug (mas não para webhooks)
+      if (!req.url.includes('/pagamento-webhook')) {
+        console.log("🚫 Origin rejeitada pelo CORS:", origin);
+      }
       callback(new Error('Não permitido pelo CORS'));
     }
   },
   credentials: true,
 }));
-
-
-// Middleware especial para webhooks (antes do CORS geral)
-app.use('/api/pagamento-webhook', (req, res, next) => {
-  // Headers específicos para webhooks
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'POST');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  
-  console.log("🔗 Webhook middleware aplicado");
-  next();
-});
 
 app.use(express.json({ limit: "200kb" }));
 app.use(helmet({
