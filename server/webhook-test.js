@@ -3,19 +3,18 @@ import fetch from 'node-fetch';
 // Script para testar o webhook manualmente
 async function testarWebhook() {
   const webhookUrl = 'https://homepudimback.onrender.com/api/pagamento-webhook';
-  
-  // Payload de teste simular do Asaas
+    // Payload de teste simular do Asaas
   const payload = {
     event: "PAYMENT_CONFIRMED",
     payment: {
-      id: "pay_test_123456",
-      externalReference: "ped_test_123", // Substitua por um ID de pedido real
+      id: "pay_nrrsl72q22nciahr",
+      externalReference: "pedido-1750896795742", // Pedido real dos logs
       status: "RECEIVED",
-      value: 100.00,
+      value: 7.9,
       dateCreated: new Date().toISOString(),
       customer: {
-        id: "cus_test_123",
-        name: "Cliente Teste"
+        id: "cus_000006801873",
+        name: "Pedro Coelho"
       }
     }
   };

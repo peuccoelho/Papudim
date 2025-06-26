@@ -262,10 +262,17 @@ export async function pagamentoWebhook(req, res) {
     if (!body || typeof body !== 'object') {
       console.warn("❌ Webhook inválido recebido:", body);
       return res.status(400).json({ erro: "Dados do webhook inválidos" });
-    }
-
-    // Aceitar diferentes eventos de pagamento do Asaas
-    const eventosAceitos = ["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED", "PAYMENT_APPROVED"];
+    }    // Aceitar diferentes eventos de pagamento do Asaas
+    const eventosAceitos = [
+      "PAYMENT_CONFIRMED", 
+      "PAYMENT_RECEIVED", 
+      "PAYMENT_APPROVED",
+      "PAYMENT_CREDIT_CARD_CAPTURE_REFUSED",
+      "PAYMENT_AWAITING_CHARGEBACK_REVERSAL",
+      "PAYMENT_DUNNING_RECEIVED",
+      "PAYMENT_BANK_SLIP_VIEWED",
+      "PAYMENT_CHECKOUT_VIEWED"
+    ];
     console.log("🔍 Verificando evento:", body.event, "aceitos:", eventosAceitos);
 
     if (eventosAceitos.includes(body.event)) {

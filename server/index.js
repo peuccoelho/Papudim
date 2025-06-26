@@ -195,6 +195,20 @@ app.post("/api/login", loginRateLimit, (req, res) => {
   return res.status(401).json({ erro: "Credenciais inválidas" });
 });
 
+// Endpoint simples para testar conectividade do webhook
+app.get('/api/webhook-health', (req, res) => {
+  console.log("🏥 Health check do webhook chamado");
+  console.log("🏥 IP:", req.ip);
+  console.log("🏥 User-Agent:", req.get('User-Agent'));
+  console.log("🏥 Headers:", JSON.stringify(req.headers, null, 2));
+  
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    message: "Webhook endpoint is healthy" 
+  });
+});
+
 app.locals.pedidosCollection = pedidosCollection;
 app.locals.ASAAS_API = ASAAS_API;
 
