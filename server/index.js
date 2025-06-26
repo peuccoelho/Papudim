@@ -106,15 +106,23 @@ app.use(helmet({
 }));
 app.use(globalLimiter);
 app.use((req, res, next) => {
-  // Log mais seguro sem dados sensíveis
-  const logData = {
-    timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.originalUrl,
-    ip: req.ip,
-    userAgent: req.get('User-Agent')?.slice(0, 100) // Limitar tamanho
-  };
-  console.log(JSON.stringify(logData));
+  // Não logar health checks do Render
+  const isHealthCheck = req.url === "/" && (
+    req.method === "HEAD" || 
+    req.method === "GET" && req.get("User-Agent")?.includes("Go-http-client")
+  );
+  
+  if (!isHealthCheck) {
+    // Log mais seguro sem dados sensíveis
+    const logData = {
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      url: req.originalUrl,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')?.slice(0, 100) // Limitar tamanho
+    };
+    console.log(JSON.stringify(logData));
+  }
   next();
 });
 

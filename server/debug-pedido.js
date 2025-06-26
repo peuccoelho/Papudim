@@ -14,7 +14,7 @@ const db = admin.firestore();
 const pedidosCollection = db.collection("pedidos");
 
 async function testeBuscarPedido() {
-  const pedidoId = "pedido-1750895224360";
+  const pedidoId = "pedido-1750896450797";
   
   console.log("🔍 Testando busca do pedido:", pedidoId);
   
