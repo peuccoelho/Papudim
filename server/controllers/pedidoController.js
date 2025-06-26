@@ -115,12 +115,21 @@ export async function criarPedido(req, res) {
   // if (totalUnidades < 20) {
   //   return res.status(400).json({ erro: "A quantidade mínima para pedidos é de 20 unidades." });
   // }
-
   const pedidoId = pedido.id || `pedido-${Date.now()}`;
   pedido.id = pedidoId;
   pedido.status = "pendente";
   pedido.itens = itensSanitizados;
   pedido.total = totalCalculado;
+
+  console.log("🆔 Pedido criado com ID:", pedidoId);
+  console.log("💾 Dados do pedido a serem salvos:", {
+    id: pedido.id,
+    cliente: pedido.cliente,
+    email: pedido.email,
+    total: pedido.total,
+    status: pedido.status,
+    itensCount: pedido.itens.length
+  });
 
   if (pedido.pagamento === "CRIPTO" && req.body.txHash) {
     pedido.txHash = req.body.txHash;
@@ -136,7 +145,6 @@ export async function criarPedido(req, res) {
   }
 
   const { cliente, email, celular, total, pagamento, parcelas } = pedido;
-
   try {
     // cliente Asaas
     const clienteData = await criarClienteAsaas(
@@ -146,6 +154,17 @@ export async function criarPedido(req, res) {
       email,
       celular
     );
+
+    console.log("👤 Cliente criado no Asaas:", clienteData.id);
+
+    // Salvar pedido no Firebase ANTES de criar a cobrança
+    try {
+      await pedidosCollection.doc(pedidoId).set(pedido);
+      console.log("✅ Pedido salvo no Firebase:", pedidoId);
+    } catch (firebaseError) {
+      console.error("❌ Erro ao salvar no Firebase:", firebaseError.message);
+      throw new Error("Erro ao salvar pedido");
+    }
 
     // cobrança Asaas
     const cobranca = await criarCobrancaAsaas(
@@ -159,13 +178,19 @@ export async function criarPedido(req, res) {
       pedido.parcelas 
     );
 
+    console.log("💳 Cobrança criada:", {
+      id: cobranca.id,
+      invoiceUrl: cobranca.invoiceUrl,
+      externalReference: pedidoId
+    });
+
     res.json({
       url: cobranca.invoiceUrl,
       pedidoId: pedidoId
     });
 
   } catch (error) {
-    console.error("Erro ao criar pedido:", error); 
+    console.error("❌ Erro ao criar pedido:", error.message, error.stack); 
     res.status(500).json({ erro: error.message });
   }
 }
@@ -175,34 +200,36 @@ async function enviarWhatsAppPedido(pedido) {
   const apikey = process.env.CALLMEBOT_APIKEY;
 
   if (!numero || !apikey) {
-    console.error("❌ Variáveis do CallMeBot ausentes:", { numero, apikey });
+    console.error("❌ Variáveis do CallMeBot ausentes:", { numero: !!numero, apikey: !!apikey });
     return;
   }
 
-  const itensTexto = pedido.itens
-    .map(i => `${i.nome} x${i.quantidade}`)
-    .join(" | ");
-  const total = Number(pedido.total).toFixed(2);
+  try {
+    const itensTexto = pedido.itens
+      .map(i => `${i.nome} x${i.quantidade}`)
+      .join(" | ");
+    const total = Number(pedido.total).toFixed(2);
 
-  const mensagem = `✅ Pagamento confirmado!
+    const mensagem = `✅ Pagamento confirmado!
 Cliente: ${pedido.cliente}
 E-mail: ${pedido.email}
 Celular: ${pedido.celular}
 Total: R$ ${total}
 Itens: ${itensTexto}`;
 
-  const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(numero)}&text=${encodeURIComponent(mensagem)}&apikey=${apikey}`;
+    console.log("📱 Enviando WhatsApp para:", numero);
 
-  try {
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(numero)}&text=${encodeURIComponent(mensagem)}&apikey=${apikey}`;
+
     const res = await fetch(url);
     const texto = await res.text();
     console.log("✅ CallMeBot resposta:", texto);
 
     if (!texto.includes("Message Sent")) {
-      console.warn("⚠️ CallMeBot falhou:", texto);
-    }
+      console.warn("⚠️ CallMeBot falhou:", texto);    }
   } catch (e) {
     console.error("❌ Erro ao enviar WhatsApp:", e.message);
+    throw e; // Re-throw para ser capturado no webhook
   }
 }
 
@@ -211,38 +238,56 @@ export async function pagamentoWebhook(req, res) {
   const body = req.body;
 
   try {
+    // Log detalhado do webhook recebido
+    console.log("🔔 Webhook recebido:", {
+      event: body?.event,
+      paymentId: body?.payment?.id,
+      externalReference: body?.payment?.externalReference,
+      status: body?.payment?.status,
+      ip: req.ip
+    });
+
     // Validação básica do webhook
     if (!body || typeof body !== 'object') {
       console.warn("❌ Webhook inválido recebido:", body);
       return res.status(400).json({ erro: "Dados do webhook inválidos" });
     }
 
-    // Validar IP do Asaas (opcional - adicione IPs permitidos)
-    const ipPermitidos = [
-      '18.229.220.181',
-      '18.231.194.64', 
-      '52.67.73.39'
-    ];
-    
-    const clientIP = req.ip || req.connection.remoteAddress;
-    // Remover verificação de IP em desenvolvimento
-    // if (!ipPermitidos.includes(clientIP)) {
-    //   console.warn("❌ Webhook de IP não autorizado:", clientIP);
-    //   return res.status(403).json({ erro: "IP não autorizado" });
-    // }
-
     if (body.event === "PAYMENT_CONFIRMED") {
       const pagamento = body.payment;
       
       if (!pagamento || !pagamento.externalReference) {
-        console.warn("❌ Webhook sem referência externa:", body);
+        console.warn("❌ Webhook sem referência externa:", JSON.stringify(body, null, 2));
         return res.status(400).json({ erro: "Referência externa ausente" });
       }
 
       const pedidoId = sanitizeInput(pagamento.externalReference);
+      console.log("🔍 Buscando pedido:", pedidoId);
 
+      // Tentar buscar o pedido
       const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
+      
+      if (!pedidoDoc.exists) {
+        console.warn("❌ Documento não existe no Firebase:", pedidoId);
+        
+        // Tentar listar alguns documentos para debug
+        const snapshot = await pedidosCollection.limit(5).get();
+        console.log("📋 Últimos pedidos no Firebase:", 
+          snapshot.docs.map(doc => ({ id: doc.id, status: doc.data().status }))
+        );
+        
+        return res.status(404).json({ erro: "Pedido não encontrado" });
+      }
+
       const pedido = pedidoDoc.data();
+      console.log("📄 Pedido encontrado:", {
+        id: pedido.id,
+        cliente: pedido.cliente,
+        total: pedido.total,
+        status: pedido.status,
+        hasCliente: !!pedido.cliente,
+        hasTotal: !!pedido.total
+      });
 
       if (pedido && pedido.cliente && pedido.total) {
         // Verificar se já foi processado
@@ -251,21 +296,44 @@ export async function pagamentoWebhook(req, res) {
           return res.sendStatus(200);
         }
 
+        // Atualizar status
         await pedidosCollection.doc(pedidoId).update({ 
           status: "a fazer",
           confirmedAt: new Date().toISOString(),
-          paymentId: sanitizeInput(pagamento.id || "")
+          paymentId: sanitizeInput(pagamento.id || ""),
+          webhookProcessedAt: new Date().toISOString()
         }); 
         
-        await enviarWhatsAppPedido(pedido);
-        console.log("✅ Pagamento confirmado - status atualizado e WhatsApp enviado");
+        console.log("✅ Status atualizado para 'a fazer'");
+        
+        // Enviar WhatsApp
+        try {
+          await enviarWhatsAppPedido(pedido);
+          console.log("✅ WhatsApp enviado com sucesso");
+        } catch (whatsappError) {
+          console.error("❌ Erro ao enviar WhatsApp:", whatsappError.message);
+          // Não falhar o webhook por causa do WhatsApp
+        }
+        
+        console.log("✅ Pagamento confirmado - processo concluído");
       } else {
-        console.warn("❌ Pedido não encontrado ou incompleto no webhook:", pedidoId);
-        return res.status(404).json({ erro: "Pedido não encontrado" });
+        console.warn("❌ Pedido incompleto:", {
+          pedidoId,
+          temCliente: !!pedido?.cliente,
+          temTotal: !!pedido?.total,
+          pedidoCompleto: pedido
+        });
+        return res.status(404).json({ erro: "Pedido incompleto" });
       }
+    } else {
+      console.log("ℹ️ Evento ignorado:", body.event);
     }
   } catch (err) {
-    console.error("❌ Erro no webhook:", err.message);
+    console.error("❌ Erro no webhook:", {
+      message: err.message,
+      stack: err.stack,
+      body: body
+    });
     return res.status(500).json({ erro: "Erro interno" });
   }
 
@@ -276,14 +344,23 @@ export async function statusPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
   const { id } = req.query;
 
+  console.log("🔍 Consultando status do pedido:", id);
+
   try {
     const pedidoDoc = await pedidosCollection.doc(id).get();
 
     if (!pedidoDoc.exists) {
+      console.warn("❌ Pedido não encontrado para status:", id);
       return res.status(404).json({ erro: "Pedido não encontrado" });
     }
 
     const pedido = pedidoDoc.data();
+    console.log("📄 Status atual do pedido:", {
+      id: id,
+      status: pedido.status,
+      pagamento: pedido.pagamento,
+      total: pedido.total
+    });
 
     // Se não for cripto, retorna status salvo normalmente
     if (pedido.pagamento !== "CRIPTO" || !pedido.txHash) {
@@ -302,30 +379,42 @@ export async function statusPedido(req, res) {
     }
 
     // Consulta o status da transação na KleverChain usando o hash correto
-    const resp = await fetch(`https://api.mainnet.klever.org/v1.0/transaction/${hash}`);
-    const tx = await resp.json();
-    console.log("Consulta status-pedido:", id, "Hash:", hash, "Resposta:", JSON.stringify(tx));
+    const resp = await fetch(`https://api.mainnet.klever.org/v1.0/transaction/${hash}`, {
+      headers: {
+        'User-Agent': 'PapudimApp/1.0',
+        'Accept': 'application/json'
+      }
+    });
 
-    // Checa status e resultCode (pode estar em tx ou tx.data.transaction)
-    const kleverTx = tx.data?.transaction || tx;
-    const statusKlever = kleverTx.status?.toLowerCase?.();
-    const resultCode =
-      tx.data?.transaction?.resultCode ||
-      tx.resultCode ||
-      tx.data?.resultCode;
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+
+    const tx = await resp.json();
+    console.log("🔗 Resposta Klever para", id, ":", JSON.stringify(tx, null, 2));
+
+    // Sanitizar dados da transação
+    const txSanitizada = sanitizeTransactionData(tx.data?.transaction || tx);
+
+    const statusKlever = txSanitizada?.status?.toLowerCase?.();
+    const resultCode = txSanitizada?.resultCode;
 
     if (
       (statusKlever === "success" || statusKlever === "successful" || statusKlever === "confirmed") &&
       (resultCode === "Ok" || resultCode === "ok")
     ) {
-      await pedidosCollection.doc(id).update({ status: "pago" });
+      await pedidosCollection.doc(id).update({ 
+        status: "pago",
+        confirmedAt: new Date().toISOString()
+      });
+      console.log("✅ Status atualizado para 'pago':", id);
       return res.json({ status: "pago" });
     }
 
     // Ainda não confirmado
     return res.json({ status: "pendente" });
   } catch (error) {
-    console.error("Erro ao consultar pedido:", error);
+    console.error("❌ Erro ao consultar pedido:", error.message);
     res.status(500).json({ erro: "Erro ao consultar status" });
   }
 }
