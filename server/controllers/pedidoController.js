@@ -234,6 +234,19 @@ Itens: ${itensTexto}`;
 }
 
 export async function pagamentoWebhook(req, res) {
+  // Log imediato para capturar QUALQUER chamada no webhook
+  console.log("🚨 ========== WEBHOOK CHAMADO ==========");
+  console.log("🚨 Method:", req.method);
+  console.log("🚨 URL:", req.url);
+  console.log("🚨 Path:", req.path);
+  console.log("🚨 User-Agent:", req.get('User-Agent'));
+  console.log("🚨 Content-Type:", req.get('Content-Type'));
+  console.log("🚨 IP:", req.ip);
+  console.log("🚨 Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("🚨 Raw Body:", JSON.stringify(req.body, null, 2));
+  console.log("🚨 Timestamp:", new Date().toISOString());
+  console.log("🚨 ==========================================");
+
   const { pedidosCollection } = req.app.locals;
   const body = req.body;
 
@@ -245,15 +258,17 @@ export async function pagamentoWebhook(req, res) {
       externalReference: body?.payment?.externalReference,
       status: body?.payment?.status,
       ip: req.ip
-    });
-
-    // Validação básica do webhook
+    });    // Validação básica do webhook
     if (!body || typeof body !== 'object') {
       console.warn("❌ Webhook inválido recebido:", body);
       return res.status(400).json({ erro: "Dados do webhook inválidos" });
     }
 
-    if (body.event === "PAYMENT_CONFIRMED") {
+    // Aceitar diferentes eventos de pagamento do Asaas
+    const eventosAceitos = ["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED", "PAYMENT_APPROVED"];
+    console.log("🔍 Verificando evento:", body.event, "aceitos:", eventosAceitos);
+
+    if (eventosAceitos.includes(body.event)) {
       const pagamento = body.payment;
       
       if (!pagamento || !pagamento.externalReference) {
@@ -605,4 +620,57 @@ async function monitorarTransacaoKlever(pedidoId, hash, pedidosCollection, pedid
       }
     }
   }, 10000);
+}
+
+// Função para testar o webhook manualmente
+export async function testeWebhook(req, res) {
+  console.log("🧪 ========== TESTE WEBHOOK ==========");
+  
+  const { pedidoId } = req.body;
+  
+  if (!pedidoId) {
+    return res.status(400).json({ erro: "pedidoId é obrigatório" });
+  }
+
+  // Simular um webhook do Asaas
+  const webhookSimulado = {
+    event: "PAYMENT_CONFIRMED",
+    payment: {
+      id: "pay_test_123",
+      externalReference: pedidoId,
+      status: "RECEIVED",
+      value: 100.00
+    }
+  };
+
+  console.log("🧪 Simulando webhook:", webhookSimulado);
+  
+  // Simular a requisição do webhook
+  const reqSimulado = {
+    ...req,
+    body: webhookSimulado,
+    method: "POST",
+    url: "/api/teste-webhook",
+    path: "/api/teste-webhook",
+    ip: "127.0.0.1",
+    get: (header) => {
+      const headers = {
+        'User-Agent': 'Asaas-Webhook-Test/1.0',
+        'Content-Type': 'application/json'
+      };
+      return headers[header] || '';
+    },
+    headers: {
+      'user-agent': 'Asaas-Webhook-Test/1.0',
+      'content-type': 'application/json'
+    }
+  };
+
+  // Chamar a função do webhook
+  try {
+    await pagamentoWebhook(reqSimulado, res);
+  } catch (error) {
+    console.error("🧪 Erro no teste do webhook:", error);
+    res.status(500).json({ erro: "Erro no teste do webhook" });
+  }
 }

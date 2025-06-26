@@ -81,16 +81,31 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Permitir requests sem origin (webhooks, Postman, etc.)
     if (!origin) return callback(null, true);
+    
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      // Log origins rejeitadas para debug
+      console.log("🚫 Origin rejeitada pelo CORS:", origin);
       callback(new Error('Não permitido pelo CORS'));
     }
   },
   credentials: true,
 }));
 
+
+// Middleware especial para webhooks (antes do CORS geral)
+app.use('/api/pagamento-webhook', (req, res, next) => {
+  // Headers específicos para webhooks
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  
+  console.log("🔗 Webhook middleware aplicado");
+  next();
+});
 
 app.use(express.json({ limit: "200kb" }));
 app.use(helmet({
