@@ -116,13 +116,19 @@ export async function criarPedido(req, res) {
   pedido.status = "pendente";
   pedido.itens = itensSanitizados;
   pedido.total = totalCalculado;
+  pedido.criadoEm = new Date().toISOString();
+
+  // Salvar o pedido no Firebase ANTES de criar a cobrança
+  console.log("💾 Salvando pedido no Firebase:", pedidoId);
+  await pedidosCollection.doc(pedidoId).set(pedido);
+  console.log("✅ Pedido salvo no Firebase com sucesso");
 
   if (pedido.pagamento === "CRIPTO" && req.body.txHash) {
     pedido.txHash = req.body.txHash;
-    await pedidosCollection.doc(pedidoId).set(pedido);
+    await pedidosCollection.doc(pedidoId).update({ txHash: req.body.txHash });
 
     // monitoramento do hash
-    monitorarTransacaoKlever(pedidoId, txHash, pedidosCollection, pedidoSalvo);
+    monitorarTransacaoKlever(pedidoId, req.body.txHash, pedidosCollection, pedido);
 
     return res.json({
       mensagem: "Pedido registrado. Aguardando confirmação na blockchain.",
@@ -133,11 +139,6 @@ export async function criarPedido(req, res) {
   const { cliente, email, celular, total, pagamento, parcelas } = pedido;
 
   try {
-    // 🔥 IMPORTANTE: Salvar o pedido no Firebase ANTES de criar o pagamento
-    console.log("💾 Salvando pedido no Firebase:", pedidoId);
-    await pedidosCollection.doc(pedidoId).set(pedido);
-    console.log("✅ Pedido salvo no Firebase com sucesso");
-
     // cliente Asaas
     const clienteData = await criarClienteAsaas(
       ASAAS_API,
@@ -165,19 +166,7 @@ export async function criarPedido(req, res) {
     });
 
   } catch (error) {
-    console.error("❌ Erro ao criar pedido:", error);
-    
-    // Se o pedido foi salvo mas houve erro no pagamento, remover do banco
-    try {
-      const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
-      if (pedidoDoc.exists) {
-        console.log("🗑️ Removendo pedido do Firebase devido ao erro:", pedidoId);
-        await pedidosCollection.doc(pedidoId).delete();
-      }
-    } catch (deleteError) {
-      console.error("❌ Erro ao remover pedido:", deleteError);
-    }
-    
+    console.error("Erro ao criar pedido:", error); 
     res.status(500).json({ erro: error.message });
   }
 }
@@ -227,12 +216,15 @@ Itens: ${itensTexto}`;
 
 export async function pagamentoWebhook(req, res) {
   console.log("🔔 Webhook recebido:", JSON.stringify(req.body, null, 2));
+  console.log("🔔 Headers:", JSON.stringify(req.headers, null, 2));
   
   // Responder imediatamente ao webhook
-  res.sendStatus(200);
+  res.status(200).json({ received: true, timestamp: new Date().toISOString() });
   
   // Processar o webhook de forma assíncrona
-  processarWebhook(req.body, req.app.locals.pedidosCollection);
+  setImmediate(() => {
+    processarWebhook(req.body, req.app.locals.pedidosCollection);
+  });
 }
 
 async function processarWebhook(body, pedidosCollection) {
@@ -261,7 +253,12 @@ async function processarWebhook(body, pedidosCollection) {
 
       if (pedido && pedido.cliente && pedido.total) {
         console.log("✅ Atualizando status do pedido para 'a fazer'");
-        await pedidosCollection.doc(pedidoId).update({ status: "a fazer" }); 
+        // Atualizar com timestamp para controle
+        await pedidosCollection.doc(pedidoId).update({ 
+          status: "a fazer",
+          pagamentoConfirmadoEm: new Date().toISOString(),
+          statusAnterior: pedido.status || "pendente"
+        }); 
         
         console.log("📱 Enviando WhatsApp...");
         await enviarWhatsAppPedido(pedido);
@@ -296,15 +293,15 @@ export async function statusPedido(req, res) {
     const pedido = pedidoDoc.data();
     console.log("📄 Status atual do pedido:", pedido.status, "| Pagamento:", pedido.pagamento);
 
-    // Se não for cripto, retorna status salvo normalmente
-    if (pedido.pagamento !== "CRIPTO" || !pedido.txHash) {
-      console.log("💳 Retornando status para pagamento não-cripto:", pedido.status);
+    // Se já está confirmado, retorna imediatamente
+    if (pedido.status === "a fazer" || pedido.status === "pago" || pedido.status === "em produção" || pedido.status === "pronto") {
+      console.log("✅ Status já confirmado:", pedido.status);
       return res.json({ status: pedido.status });
     }
 
-    // Se já está marcado como "a fazer" ou "pago", retorna imediatamente
-    if (pedido.status === "a fazer" || pedido.status === "pago") {
-      console.log("✅ Status já confirmado:", pedido.status);
+    // Se não for cripto, retorna status salvo normalmente
+    if (pedido.pagamento !== "CRIPTO" || !pedido.txHash) {
+      console.log("💳 Retornando status para pagamento não-cripto:", pedido.status);
       return res.json({ status: pedido.status });
     }
 
