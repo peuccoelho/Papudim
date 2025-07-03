@@ -166,6 +166,8 @@ export async function criarPedido(req, res) {
 }
 
 async function enviarWhatsAppPedido(pedido) {
+  console.log("📱 Iniciando envio WhatsApp para pedido:", pedido.id);
+  
   const numero = process.env.CALLMEBOT_NUMERO;
   const apikey = process.env.CALLMEBOT_APIKEY;
 
@@ -188,13 +190,18 @@ Itens: ${itensTexto}`;
 
   const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(numero)}&text=${encodeURIComponent(mensagem)}&apikey=${apikey}`;
 
+  console.log("📲 Enviando WhatsApp para:", numero);
+  console.log("📝 Mensagem:", mensagem);
+
   try {
     const res = await fetch(url);
     const texto = await res.text();
-    console.log("✅ CallMeBot resposta:", texto);
+    console.log("📞 CallMeBot resposta:", texto);
 
     if (!texto.includes("Message Sent")) {
       console.warn("⚠️ CallMeBot falhou:", texto);
+    } else {
+      console.log("✅ WhatsApp enviado com sucesso!");
     }
   } catch (e) {
     console.error("❌ Erro ao enviar WhatsApp:", e.message);
@@ -202,52 +209,85 @@ Itens: ${itensTexto}`;
 }
 
 export async function pagamentoWebhook(req, res) {
-  const { pedidosCollection } = req.app.locals;
-  const body = req.body;
+  console.log("🔔 Webhook recebido:", JSON.stringify(req.body, null, 2));
+  
+  // Responder imediatamente ao webhook
+  res.sendStatus(200);
+  
+  // Processar o webhook de forma assíncrona
+  processarWebhook(req.body, req.app.locals.pedidosCollection);
+}
 
+async function processarWebhook(body, pedidosCollection) {
   try {
-    if (body.event === "PAYMENT_CONFIRMED") {
+    console.log("🔄 Evento recebido:", body.event);
+    
+    // Verificar diferentes tipos de eventos de pagamento
+    if (body.event === "PAYMENT_CONFIRMED" || 
+        body.event === "PAYMENT_RECEIVED" || 
+        body.event === "PAYMENT_APPROVED") {
+      
       const pagamento = body.payment;
       const pedidoId = pagamento.externalReference;
 
+      console.log("📋 Processando pagamento confirmado para pedido:", pedidoId);
+
       const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
+      
+      if (!pedidoDoc.exists) {
+        console.error("❌ Pedido não encontrado no Firebase:", pedidoId);
+        return;
+      }
+
       const pedido = pedidoDoc.data();
+      console.log("📄 Dados do pedido encontrado:", JSON.stringify(pedido, null, 2));
 
       if (pedido && pedido.cliente && pedido.total) {
+        console.log("✅ Atualizando status do pedido para 'a fazer'");
         await pedidosCollection.doc(pedidoId).update({ status: "a fazer" }); 
-        enviarWhatsAppPedido(pedido);
-        console.log("Pagamento confirmado - status atualizado e WhatsApp enviado");
+        
+        console.log("📱 Enviando WhatsApp...");
+        await enviarWhatsAppPedido(pedido);
+        
+        console.log("✅ Pagamento confirmado - status atualizado e WhatsApp enviado");
       } else {
-        console.warn("Pedido não encontrado ou incompleto no webhook:", pedidoId);
+        console.warn("⚠️ Pedido não encontrado ou incompleto no webhook:", pedidoId);
+        console.warn("⚠️ Dados do pedido:", { cliente: pedido?.cliente, total: pedido?.total });
       }
+    } else {
+      console.log("ℹ️ Evento webhook ignorado:", body.event);
     }
   } catch (err) {
-    console.error("Erro no webhook:", err);
+    console.error("❌ Erro no processamento do webhook:", err);
   }
-
-  res.sendStatus(200);
 }
 
 export async function statusPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
   const { id } = req.query;
 
+  console.log("🔍 Consultando status do pedido:", id);
+
   try {
     const pedidoDoc = await pedidosCollection.doc(id).get();
 
     if (!pedidoDoc.exists) {
+      console.log("❌ Pedido não encontrado:", id);
       return res.status(404).json({ erro: "Pedido não encontrado" });
     }
 
     const pedido = pedidoDoc.data();
+    console.log("📄 Status atual do pedido:", pedido.status, "| Pagamento:", pedido.pagamento);
 
     // Se não for cripto, retorna status salvo normalmente
     if (pedido.pagamento !== "CRIPTO" || !pedido.txHash) {
+      console.log("💳 Retornando status para pagamento não-cripto:", pedido.status);
       return res.json({ status: pedido.status });
     }
 
     // Se já está marcado como "a fazer" ou "pago", retorna imediatamente
     if (pedido.status === "a fazer" || pedido.status === "pago") {
+      console.log("✅ Status já confirmado:", pedido.status);
       return res.json({ status: pedido.status });
     }
 

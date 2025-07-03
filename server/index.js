@@ -12,6 +12,7 @@ import helmet from "helmet";
 // rotas
 import pedidoRoutes from "./routes/pedidoRoutes.js";
 import { loginLimiter, pedidoLimiter, globalLimiter, adminLimiter } from "./middlewares/rateLimit.js";
+import { configurarWebhookAsaas } from "./services/asaasService.js";
 
 dotenv.config();
 console.log("Token carregado:", process.env.ASAAS_ACCESS_TOKEN?.slice(0, 10) + "...");
@@ -36,6 +37,9 @@ const DB_FILE = path.join(__dirname, "pedidos.json");
 
 const ASAAS_ACCESS_TOKEN = process.env.ASAAS_ACCESS_TOKEN;
 const ASAAS_API = "https://api-sandbox.asaas.com/";
+
+// Configurar webhook do Asaas na inicialização
+configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN);
 
 app.use(cors({
   origin: ["https://papudim.netlify.app", "http://localhost:5173"],
@@ -86,6 +90,12 @@ app.locals.ASAAS_API = ASAAS_API;
 app.locals.ASAAS_ACCESS_TOKEN = ASAAS_ACCESS_TOKEN;
 
 app.use("/api", pedidoRoutes);
+
+// Endpoint para testar webhook manualmente
+app.post("/api/test-webhook", (req, res) => {
+  console.log("🧪 Teste webhook recebido:", JSON.stringify(req.body, null, 2));
+  res.json({ success: true, body: req.body });
+});
 
 app.listen(PORT, () => {
   console.log(`Papudim backend rodando em http://localhost:${PORT}`);
