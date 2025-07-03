@@ -53,7 +53,7 @@ async function obterCotacaoKLV() {
 
 export async function criarPedido(req, res) {
   console.log("Recebido pedido:", req.body); 
-  const { pedidosCollection, ASAAS_API } = req.app.locals;
+  const { pedidosCollection, ASAAS_API, ASAAS_ACCESS_TOKEN } = req.app.locals;
   const pedido = req.body;
 
   // validação 
@@ -136,7 +136,7 @@ export async function criarPedido(req, res) {
     // cliente Asaas
     const clienteData = await criarClienteAsaas(
       ASAAS_API,
-      process.env.access_token,
+      ASAAS_ACCESS_TOKEN,
       cliente,
       email,
       celular
@@ -145,7 +145,7 @@ export async function criarPedido(req, res) {
     // cobrança Asaas
     const cobranca = await criarCobrancaAsaas(
       ASAAS_API,
-      process.env.access_token,
+      ASAAS_ACCESS_TOKEN,
       clienteData.id,
       pagamento,
       total,

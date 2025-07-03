@@ -14,7 +14,7 @@ import pedidoRoutes from "./routes/pedidoRoutes.js";
 import { loginLimiter, pedidoLimiter, globalLimiter, adminLimiter } from "./middlewares/rateLimit.js";
 
 dotenv.config();
-console.log("Token carregado:", process.env.access_token?.slice(0, 10) + "...");
+console.log("Token carregado:", process.env.ASAAS_ACCESS_TOKEN?.slice(0, 10) + "...");
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG_JSON);
 
@@ -34,7 +34,7 @@ const PORT = 3000;
 const SECRET_KEY = process.env.JWT_SECRET;
 const DB_FILE = path.join(__dirname, "pedidos.json");
 
-const access_token = process.env.access_token;
+const ASAAS_ACCESS_TOKEN = process.env.ASAAS_ACCESS_TOKEN;
 const ASAAS_API = "https://api-sandbox.asaas.com/";
 
 app.use(cors({
@@ -68,7 +68,7 @@ app.post("/api/login", loginLimiter, (req, res) => {
   }
 
   const { senha } = req.body;
-  if (senha === "papudim123") {
+  if (senha === process.env.ADMIN_PASSWORD) {
     tentativasLogin[ip] = { count: 0, bloqueadoAte: null };
     const token = jwt.sign({ admin: true }, SECRET_KEY, { expiresIn: "12h" });
     return res.json({ token });
@@ -83,6 +83,7 @@ app.post("/api/login", loginLimiter, (req, res) => {
 
 app.locals.pedidosCollection = pedidosCollection;
 app.locals.ASAAS_API = ASAAS_API;
+app.locals.ASAAS_ACCESS_TOKEN = ASAAS_ACCESS_TOKEN;
 
 app.use("/api", pedidoRoutes);
 

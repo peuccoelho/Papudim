@@ -1,11 +1,11 @@
 import fetch from "node-fetch";
 
-export async function criarClienteAsaas(ASAAS_API, access_token, cliente, email, celular) {
+export async function criarClienteAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN, cliente, email, celular) {
   const response = await fetch(`${ASAAS_API}v3/customers`, {
     method: "POST",
     headers: {
       'Content-Type': "application/json",
-      access_token,
+      access_token: ASAAS_ACCESS_TOKEN,
     },
     body: JSON.stringify({
       name: cliente,
@@ -24,7 +24,7 @@ export async function criarClienteAsaas(ASAAS_API, access_token, cliente, email,
 
 export async function criarCobrancaAsaas(
   ASAAS_API,
-  access_token,
+  ASAAS_ACCESS_TOKEN,
   clienteId,
   pagamento,
   total,
@@ -55,7 +55,7 @@ export async function criarCobrancaAsaas(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      access_token,
+      access_token: ASAAS_ACCESS_TOKEN,
     },
     body: JSON.stringify(body)
   });
