@@ -32,8 +32,6 @@ export async function criarCobrancaAsaas(
   clienteNome,
   parcelas = 1 
 ) {
-  const webhookUrl = process.env.WEBHOOK_URL || "https://homepudimback.onrender.com/api/pagamento-webhook";
-  
   const body = {
     customer: clienteId,
     billingType: pagamento.toUpperCase(),
@@ -41,14 +39,14 @@ export async function criarCobrancaAsaas(
     description: `Pedido de pudins para ${clienteNome}`,
     externalReference: pedidoId,
     callback: {
-      successUrl: "https://papudim.netlify.app/aguardando.html?id=" + pedidoId,
+      successUrl: "https://papudim.netlify.app/pagamento-sucesso.html?id=" + pedidoId,
+      autoRedirect: false
     },
-    // Configurar webhook para notificações
-    notificationDisabled: false,
-    webhookUrl: webhookUrl
+    // Garantir que as notificações estão habilitadas para usar o webhook global
+    notificationDisabled: false
   };
 
-  console.log("📢 Configurando webhook para cobrança:", webhookUrl);
+  console.log("� Criando cobrança (usando webhook global)");
 
   if (pagamento.toUpperCase() === "CREDIT_CARD" && parcelas > 1) {
     const valorParcela = Number((total / parcelas).toFixed(2));
@@ -58,7 +56,7 @@ export async function criarCobrancaAsaas(
     body.value = Number(total);
   }
 
-  console.log("💳 Criando cobrança:", JSON.stringify(body, null, 2));
+  console.log("💳 Dados da cobrança:", JSON.stringify(body, null, 2));
 
   const response = await fetch(`${ASAAS_API}v3/payments`, {
     method: "POST",

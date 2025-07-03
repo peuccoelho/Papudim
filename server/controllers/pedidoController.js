@@ -133,6 +133,11 @@ export async function criarPedido(req, res) {
   const { cliente, email, celular, total, pagamento, parcelas } = pedido;
 
   try {
+    // 🔥 IMPORTANTE: Salvar o pedido no Firebase ANTES de criar o pagamento
+    console.log("💾 Salvando pedido no Firebase:", pedidoId);
+    await pedidosCollection.doc(pedidoId).set(pedido);
+    console.log("✅ Pedido salvo no Firebase com sucesso");
+
     // cliente Asaas
     const clienteData = await criarClienteAsaas(
       ASAAS_API,
@@ -160,7 +165,19 @@ export async function criarPedido(req, res) {
     });
 
   } catch (error) {
-    console.error("Erro ao criar pedido:", error); 
+    console.error("❌ Erro ao criar pedido:", error);
+    
+    // Se o pedido foi salvo mas houve erro no pagamento, remover do banco
+    try {
+      const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
+      if (pedidoDoc.exists) {
+        console.log("🗑️ Removendo pedido do Firebase devido ao erro:", pedidoId);
+        await pedidosCollection.doc(pedidoId).delete();
+      }
+    } catch (deleteError) {
+      console.error("❌ Erro ao remover pedido:", deleteError);
+    }
+    
     res.status(500).json({ erro: error.message });
   }
 }
