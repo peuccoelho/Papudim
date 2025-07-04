@@ -520,6 +520,25 @@ function validarFormulario() {
       input.addEventListener("change", () => {
         validarFormulario();
         atualizarBarraProgresso();
+        
+        // Mostrar/esconder aviso do Klever baseado na forma de pagamento
+        if (input.id === "formaPagamento") {
+          const avisoKlever = document.getElementById("avisoKlever");
+          const selectParcelas = document.getElementById("parcelas");
+          
+          if (input.value === "CRIPTO") {
+            avisoKlever?.classList.remove("hidden");
+            selectParcelas.style.display = "none";
+          } else {
+            avisoKlever?.classList.add("hidden");
+            // Mostrar parcelas apenas para cartão de crédito
+            if (input.value === "CREDIT_CARD") {
+              selectParcelas.style.display = "block";
+            } else {
+              selectParcelas.style.display = "none";
+            }
+          }
+        }
       });
     }
   }
