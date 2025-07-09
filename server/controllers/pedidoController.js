@@ -20,7 +20,7 @@ const PRECOS_PRODUTOS = {
   "Pudim de Abacaxi": 8.9
 };
 
-// Cache simples para cotação (1 minuto)
+// cache simples para cotação (1 minuto)
 let cacheCotacaoKLV = { valor: null, timestamp: 0 };
 
 async function obterCotacaoKLV() {
@@ -34,7 +34,7 @@ async function obterCotacaoKLV() {
       {
         params: {
           chain: "eth",
-          address: "0x6381e717cD4f9EFc4D7FB1a935cD755b6F3fFfAa", // KLV na Ethereum
+          address: "0x6381e717cD4f9EFc4D7FB1a935cD755b6F3fFfAa", 
         },
         headers: {
           "X-API-Key": process.env.MORALIS_API_KEY,
@@ -42,12 +42,12 @@ async function obterCotacaoKLV() {
       }
     );
     const precoUSD = response.data.usdPrice;
-    const precoBRL = precoUSD * 5.2; // ou use uma API para cotação USD/BRL
+    const precoBRL = precoUSD * 5.2; 
     cacheCotacaoKLV = { valor: precoBRL, timestamp: agora };
     return precoBRL;
   } catch (error) {
-    console.error("❌ Erro ao consultar cotação na Moralis:", error.message);
-    return 0.01; // fallback
+    console.error("Erro ao consultar cotação na Moralis:", error.message);
+    return 0.01; 
   }
 }
 
@@ -107,10 +107,7 @@ export async function criarPedido(req, res) {
   totalCalculado = Number(totalCalculado.toFixed(2));
 
   const totalUnidades = itensSanitizados.reduce((sum, item) => sum + item.quantidade, 0);
-  // if (totalUnidades < 20) {
-  //   return res.status(400).json({ erro: "A quantidade mínima para pedidos é de 20 unidades." });
-  // }
-
+  
   const pedidoId = pedido.id || `pedido-${Date.now()}`;
   pedido.id = pedidoId;
   pedido.status = "pendente";
@@ -118,10 +115,10 @@ export async function criarPedido(req, res) {
   pedido.total = totalCalculado;
   pedido.criadoEm = new Date().toISOString();
 
-  // Salvar o pedido no Firebase ANTES de criar a cobrança
-  console.log("💾 Salvando pedido no Firebase:", pedidoId);
+  
+  console.log("Salvando pedido no Firebase:", pedidoId);
   await pedidosCollection.doc(pedidoId).set(pedido);
-  console.log("✅ Pedido salvo no Firebase com sucesso");
+  console.log("Pedido salvo no Firebase com sucesso");
 
   if (pedido.pagamento === "CRIPTO" && req.body.txHash) {
     pedido.txHash = req.body.txHash;
@@ -172,13 +169,13 @@ export async function criarPedido(req, res) {
 }
 
 async function enviarWhatsAppPedido(pedido) {
-  console.log("📱 Iniciando envio WhatsApp para pedido:", pedido.id);
+  console.log("Iniciando envio WhatsApp para pedido:", pedido.id);
   
   const numero = process.env.CALLMEBOT_NUMERO;
   const apikey = process.env.CALLMEBOT_APIKEY;
 
   if (!numero || !apikey) {
-    console.error("❌ Variáveis do CallMeBot ausentes:", { numero, apikey });
+    console.error("Variáveis do CallMeBot ausentes:", { numero, apikey });
     return;
   }
 
@@ -196,32 +193,32 @@ Itens: ${itensTexto}`;
 
   const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(numero)}&text=${encodeURIComponent(mensagem)}&apikey=${apikey}`;
 
-  console.log("📲 Enviando WhatsApp para:", numero);
-  console.log("📝 Mensagem:", mensagem);
+  console.log("Enviando WhatsApp para:", numero);
+  console.log("Mensagem:", mensagem);
 
   try {
     const res = await fetch(url);
     const texto = await res.text();
-    console.log("📞 CallMeBot resposta:", texto);
+    console.log("CallMeBot resposta:", texto);
 
     if (!texto.includes("Message Sent")) {
-      console.warn("⚠️ CallMeBot falhou:", texto);
+      console.warn("CallMeBot falhou:", texto);
     } else {
-      console.log("✅ WhatsApp enviado com sucesso!");
+      console.log("WhatsApp enviado com sucesso!");
     }
   } catch (e) {
-    console.error("❌ Erro ao enviar WhatsApp:", e.message);
+    console.error("Erro ao enviar WhatsApp:", e.message);
   }
 }
 
 export async function pagamentoWebhook(req, res) {
-  console.log("🔔 Webhook recebido:", JSON.stringify(req.body, null, 2));
-  console.log("🔔 Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("Webhook recebido:", JSON.stringify(req.body, null, 2));
+  console.log("Headers:", JSON.stringify(req.headers, null, 2));
   
-  // Responder imediatamente ao webhook
+  // responder imediatamente ao webhook
   res.status(200).json({ received: true, timestamp: new Date().toISOString() });
   
-  // Processar o webhook de forma assíncrona
+  // processar o webhook de forma assíncrona
   setImmediate(() => {
     processarWebhook(req.body, req.app.locals.pedidosCollection);
   });
@@ -229,9 +226,8 @@ export async function pagamentoWebhook(req, res) {
 
 async function processarWebhook(body, pedidosCollection) {
   try {
-    console.log("🔄 Evento recebido:", body.event);
+    console.log("Evento recebido:", body.event);
     
-    // Verificar diferentes tipos de eventos de pagamento
     if (body.event === "PAYMENT_CONFIRMED" || 
         body.event === "PAYMENT_RECEIVED" || 
         body.event === "PAYMENT_APPROVED") {
@@ -239,40 +235,40 @@ async function processarWebhook(body, pedidosCollection) {
       const pagamento = body.payment;
       const pedidoId = pagamento.externalReference;
 
-      console.log("📋 Processando pagamento confirmado para pedido:", pedidoId);
+      console.log("Processando pagamento confirmado para pedido:", pedidoId);
 
       const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
       
       if (!pedidoDoc.exists) {
-        console.error("❌ Pedido não encontrado no Firebase:", pedidoId);
+        console.error("Pedido não encontrado no Firebase:", pedidoId);
         return;
       }
 
       const pedido = pedidoDoc.data();
-      console.log("📄 Dados do pedido encontrado:", JSON.stringify(pedido, null, 2));
+      console.log("Dados do pedido encontrado:", JSON.stringify(pedido, null, 2));
 
       if (pedido && pedido.cliente && pedido.total) {
-        console.log("✅ Atualizando status do pedido para 'a fazer'");
-        // Atualizar com timestamp para controle
+        console.log("Atualizando status do pedido para 'a fazer'");
+        // timestamp para controle
         await pedidosCollection.doc(pedidoId).update({ 
           status: "a fazer",
           pagamentoConfirmadoEm: new Date().toISOString(),
           statusAnterior: pedido.status || "pendente"
         }); 
         
-        console.log("📱 Enviando WhatsApp...");
+        console.log("Enviando WhatsApp...");
         await enviarWhatsAppPedido(pedido);
         
-        console.log("✅ Pagamento confirmado - status atualizado e WhatsApp enviado");
+        console.log("Pagamento confirmado - status atualizado e WhatsApp enviado");
       } else {
-        console.warn("⚠️ Pedido não encontrado ou incompleto no webhook:", pedidoId);
-        console.warn("⚠️ Dados do pedido:", { cliente: pedido?.cliente, total: pedido?.total });
+        console.warn("Pedido não encontrado ou incompleto no webhook:", pedidoId);
+        console.warn("Dados do pedido:", { cliente: pedido?.cliente, total: pedido?.total });
       }
     } else {
-      console.log("ℹ️ Evento webhook ignorado:", body.event);
+      console.log("Evento webhook ignorado:", body.event);
     }
   } catch (err) {
-    console.error("❌ Erro no processamento do webhook:", err);
+    console.error("Erro no processamento do webhook:", err);
   }
 }
 
@@ -280,43 +276,40 @@ export async function statusPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
   const { id } = req.query;
 
-  console.log("🔍 Consultando status do pedido:", id);
+  console.log("Consultando status do pedido:", id);
 
   try {
     const pedidoDoc = await pedidosCollection.doc(id).get();
 
     if (!pedidoDoc.exists) {
-      console.log("❌ Pedido não encontrado:", id);
+      console.log("Pedido não encontrado:", id);
       return res.status(404).json({ erro: "Pedido não encontrado" });
     }
 
     const pedido = pedidoDoc.data();
-    console.log("📄 Status atual do pedido:", pedido.status, "| Pagamento:", pedido.pagamento);
+    console.log("Status atual do pedido:", pedido.status, "| Pagamento:", pedido.pagamento);
 
-    // Se já está confirmado, retorna imediatamente
     if (pedido.status === "a fazer" || pedido.status === "pago" || pedido.status === "em produção" || pedido.status === "pronto") {
-      console.log("✅ Status já confirmado:", pedido.status);
+      console.log("Status já confirmado:", pedido.status);
       return res.json({ status: pedido.status });
     }
 
-    // Se não for cripto, retorna status salvo normalmente
     if (pedido.pagamento !== "CRIPTO" || !pedido.txHash) {
-      console.log("💳 Retornando status para pagamento não-cripto:", pedido.status);
+      console.log("Retornando status para pagamento não-cripto:", pedido.status);
       return res.json({ status: pedido.status });
     }
 
-    // Busca o hash correto salvo no pedido!
     const hash = pedido.txHash;
     if (!hash) {
       return res.status(400).json({ erro: "Hash da transação não encontrado para o pedido" });
     }
 
-    // Consulta o status da transação na KleverChain usando o hash correto
+    // status da transação na KleverChain usando o hash correto
     const resp = await fetch(`https://api.mainnet.klever.org/v1.0/transaction/${hash}`);
     const tx = await resp.json();
     console.log("Consulta status-pedido:", id, "Hash:", hash, "Resposta:", JSON.stringify(tx));
 
-    // Checa status e resultCode (pode estar em tx ou tx.data.transaction)
+    // check status e resultCode 
     const kleverTx = tx.data?.transaction || tx;
     const statusKlever = kleverTx.status?.toLowerCase?.();
     const resultCode =
@@ -332,7 +325,6 @@ export async function statusPedido(req, res) {
       return res.json({ status: "pago" });
     }
 
-    // Ainda não confirmado
     return res.json({ status: "pendente" });
   } catch (error) {
     console.error("Erro ao consultar pedido:", error);
@@ -370,14 +362,14 @@ export async function atualizarStatusPedido(req, res) {
   }
 }
 
-// Substitua o trecho de cotação do KLV em criarPedidoCripto para usar apenas Moralis
+
 export async function criarPedidoCripto(req, res) {
   const { pedidosCollection } = req.app.locals;
   try {
     const { pedido, txHash } = req.body;
 
     if (!pedido || !txHash) {
-      console.warn("❌ Pedido ou hash ausentes na requisição:", req.body);
+      console.warn("Pedido ou hash ausentes na requisição:", req.body);
       return res.status(400).json({ erro: "Pedido ou txHash ausentes." });
     }
 
@@ -407,7 +399,7 @@ export async function criarPedidoCripto(req, res) {
 
     res.json({ pedidoId, hash: txHash });
   } catch (erro) {
-    console.error("❌ Erro no back-end ao processar pedido:", erro);
+    console.error("Erro no back-end ao processar pedido:", erro);
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 }
@@ -420,7 +412,7 @@ async function monitorarTransacaoKlever(pedidoId, hash, pedidosCollection, pedid
     try {
       const res = await fetch(`https://api.mainnet.klever.org/v1.0/transaction/${hash}`);
       const tx = await res.json();
-      console.log("🟡 [Klever] Resposta para hash", hash, ":", JSON.stringify(tx));
+      console.log("[Klever] Resposta para hash", hash, ":", JSON.stringify(tx));
 
       const statusKlever =
         tx.data?.transaction?.status?.toLowerCase?.() ||
@@ -433,27 +425,27 @@ async function monitorarTransacaoKlever(pedidoId, hash, pedidosCollection, pedid
         tx.resultCode ||
         tx.data?.resultCode;
 
-      console.log("🔎 statusKlever:", statusKlever, "| resultCode:", resultCode);
+      console.log("statusKlever:", statusKlever, "| resultCode:", resultCode);
 
       if (
         (statusKlever === "success" || statusKlever === "successful" || statusKlever === "confirmed") &&
         (resultCode === "Ok" || resultCode === "ok")
       ) {
-        console.log("✅ Entrou no if success. Vai atualizar status e enviar WhatsApp.");
+        console.log("Entrou no if success. Vai atualizar status e enviar WhatsApp.");
 
         await pedidosCollection.doc(pedidoId).update({ status: "a fazer" });
 
-        // Busca o pedido atualizado do Firestore para garantir todos os campos
+        // pedido atualizado do Firestore para garantir todos os campos
         const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
         const pedidoAtualizado = pedidoDoc.exists ? pedidoDoc.data() : pedidoOriginal;
         pedidoAtualizado.status = "a fazer";
 
         try {
-          console.log("🚀 Chamando enviarWhatsAppPedido...");
+          console.log("Chamando enviarWhatsAppPedido...");
           await enviarWhatsAppPedido(pedidoAtualizado);
-          console.log("✅ enviarWhatsAppPedido executado.");
+          console.log("enviarWhatsAppPedido executado.");
         } catch (e) {
-          console.error("❌ Erro ao enviar WhatsApp após confirmação:", e.message);
+          console.error("Erro ao enviar WhatsApp após confirmação:", e.message);
         }
 
         clearInterval(intervalo);

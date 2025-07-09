@@ -38,7 +38,7 @@ const DB_FILE = path.join(__dirname, "pedidos.json");
 const ASAAS_ACCESS_TOKEN = process.env.ASAAS_ACCESS_TOKEN;
 const ASAAS_API = "https://api-sandbox.asaas.com/";
 
-// Configurar webhook do Asaas na inicialização
+// webhook do Asaas na inicialização
 configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN);
 
 app.use(cors({
@@ -91,9 +91,9 @@ app.locals.ASAAS_ACCESS_TOKEN = ASAAS_ACCESS_TOKEN;
 
 app.use("/api", pedidoRoutes);
 
-// Endpoint para testar webhook manualmente
+// endpoint para testar webhook manualmente
 app.post("/api/test-webhook", (req, res) => {
-  console.log("🧪 Teste webhook recebido:", JSON.stringify(req.body, null, 2));
+  console.log("este webhook recebido:", JSON.stringify(req.body, null, 2));
   res.json({ success: true, body: req.body });
 });
 

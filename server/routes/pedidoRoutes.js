@@ -12,7 +12,7 @@ router.get("/admin-pedidos", pedidoLimiter, autenticar, adminPedidos);
 router.put("/atualizar-status", autenticar, atualizarStatusPedido);
 router.post("/pagamento-cripto", criarPedidoCripto);
 
-// Endpoint de debug para verificar pedidos
+// endpoint de debug para verificar pedidos
 router.get("/debug-pedido", async (req, res) => {
   const { pedidosCollection } = req.app.locals;
   const { id } = req.query;

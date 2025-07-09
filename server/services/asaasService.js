@@ -44,12 +44,12 @@ export async function criarCobrancaAsaas(
       successUrl: "https://papudim.netlify.app/pagamento-callback.html?id=" + pedidoId,
       autoRedirect: true
     },
-    // Configurar webhook para notificações
+    // webhook para notificações
     notificationDisabled: false,
     webhookUrl: webhookUrl
   };
 
-  console.log("📢 Configurando webhook para cobrança:", webhookUrl);
+  console.log("Configurando webhook para cobrança:", webhookUrl);
 
   if (pagamento.toUpperCase() === "CREDIT_CARD" && parcelas > 1) {
     const valorParcela = Number((total / parcelas).toFixed(2));
@@ -59,7 +59,7 @@ export async function criarCobrancaAsaas(
     body.value = Number(total);
   }
 
-  console.log("💳 Criando cobrança:", JSON.stringify(body, null, 2));
+  console.log("Criando cobrança:", JSON.stringify(body, null, 2));
 
   const response = await fetch(`${ASAAS_API}v3/payments`, {
     method: "POST",
@@ -71,7 +71,7 @@ export async function criarCobrancaAsaas(
   });
 
   const texto = await response.text();
-  console.log("📝 Resposta da criação de cobrança:", texto);
+  console.log("Resposta da criação de cobrança:", texto);
   
   if (!response.ok) {
     throw new Error(`Erro ao criar cobrança: ${response.status} - ${texto}`);
@@ -79,7 +79,7 @@ export async function criarCobrancaAsaas(
   return JSON.parse(texto);
 }
 
-// Função para configurar webhook global do Asaas
+// configurar webhook global do Asaas
 export async function configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN) {
   const webhookUrl = process.env.WEBHOOK_URL || "https://homepudimback.onrender.com/api/pagamento-webhook";
   
@@ -90,7 +90,7 @@ export async function configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN) {
     enabled: true
   };
 
-  console.log("🔧 Configurando webhook global:", JSON.stringify(body, null, 2));
+  console.log("Configurando webhook global:", JSON.stringify(body, null, 2));
 
   try {
     const response = await fetch(`${ASAAS_API}v3/webhooks`, {
@@ -103,14 +103,14 @@ export async function configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN) {
     });
 
     const texto = await response.text();
-    console.log("📢 Resposta da configuração de webhook:", texto);
+    console.log("Resposta da configuração de webhook:", texto);
     
-    if (!response.ok && response.status !== 409) { // 409 = já existe
-      console.error("❌ Erro ao configurar webhook:", response.status, texto);
+    if (!response.ok && response.status !== 409) { 
+      console.error("Erro ao configurar webhook:", response.status, texto);
     } else {
-      console.log("✅ Webhook configurado com sucesso");
+      console.log("Webhook configurado com sucesso");
     }
   } catch (error) {
-    console.error("❌ Erro ao configurar webhook:", error);
+    console.error("Erro ao configurar webhook:", error);
   }
 }
