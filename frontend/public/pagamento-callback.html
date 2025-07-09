@@ -91,12 +91,10 @@
         const pedidoId = urlParams.get("id");
 
         if (!pedidoId) {
-          // Se não há ID, redireciona para o início
           window.location.href = "index.html";
           return;
         }
 
-        // Aguarda um pouco para o webhook processar
         setTimeout(async () => {
           try {
             const res = await fetch(
@@ -105,18 +103,16 @@
             const dados = await res.json();
 
             if (dados.status === "pago" || dados.status === "a fazer") {
-              // Pagamento confirmado
               window.location.href = "pagamento-sucesso.html?id=" + pedidoId;
             } else {
-              // Ainda aguardando
               window.location.href = "aguardando.html?id=" + pedidoId;
             }
           } catch (e) {
             console.error("Erro ao verificar status:", e);
-            // Em caso de erro, vai para aguardando
+
             window.location.href = "aguardando.html?id=" + pedidoId;
           }
-        }, 3000); // 3 segundos para dar tempo do webhook processar
+        }, 3000);
       });
     </script>
   </body>
