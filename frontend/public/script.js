@@ -54,7 +54,6 @@ function verificarHorarioFuncionamento() {
   return aberto;
 }
 
-// Atualiza o status imediatamente ao carregar
 verificarHorarioFuncionamento();
 // Atualiza o status a cada minuto
 setInterval(verificarHorarioFuncionamento, 60000);
