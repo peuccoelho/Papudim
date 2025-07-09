@@ -55,7 +55,6 @@ function verificarHorarioFuncionamento() {
 }
 
 verificarHorarioFuncionamento();
-
 setInterval(verificarHorarioFuncionamento, 60000);
 
 if (cardapioContainer) {
@@ -115,7 +114,7 @@ function atualizarCarrinho() {
   carrinhoContainer.innerHTML = "";
 
   if (carrinho.length === 0) {
-    // contra XSS no innerHTML
+    
     carrinhoContainer.innerHTML =
       '<li class="text-gray-500 italic">Nenhum item no carrinho</li>';
     
@@ -126,7 +125,7 @@ function atualizarCarrinho() {
   carrinho.forEach((item, i) => {
     const li = document.createElement("li");
     li.className = "flex justify-between items-center gap-4";
-    // contra XSS nos nomes dos itens
+    
     li.innerHTML = `
       <span class="flex-1">${escapeHTML(item.nome)} (${escapeHTML(item.peso)})</span>
       <input type="number" min="1" value="${item.quantidade}" onchange="atualizarQuantidade(${i}, this.value)" class="w-16 text-center border rounded" />
@@ -207,7 +206,7 @@ btnFinalizar.addEventListener("click", async (e) => {
     }
   }
 
-  // MONTA O OBJETO DO PEDIDO CORRETAMENTE!
+  
   pedidoParaEnviar = {
     id: "pedido-" + Date.now(),
     cliente: nome,
@@ -224,7 +223,7 @@ btnFinalizar.addEventListener("click", async (e) => {
     parcelas: pagamento === "CREDIT_CARD" ? parcelas : undefined
   };
 
-  // Monta o resumo (mantém igual)
+  
   let html = `<ul class="mb-2">`;
   carrinho.forEach(item => {
     html += `<li>${escapeHTML(item.nome)} (${escapeHTML(item.peso)}) x${item.quantidade} - R$ ${(item.preco * item.quantidade).toFixed(2).replace(".", ",")}</li>`;
@@ -259,12 +258,12 @@ btnFinalizar.addEventListener("click", async (e) => {
   modalResumo.classList.remove("hidden");
 });
 
-// Fecha o modal
+
 btnCancelarResumo.addEventListener("click", () => {
   modalResumo.classList.add("hidden");
 });
 
-// Confirma e envia o pedido
+
 btnConfirmarResumo.addEventListener("click", async () => {
   if (pedidoParaEnviar.pagamento === "CRIPTO") {
     try {
@@ -273,24 +272,24 @@ btnConfirmarResumo.addEventListener("click", async () => {
 
       let redeUsada = "mainnet";
       try {
-        // Provider correto para MAINNET
+        // provider MAINNET
         web.setProvider({
           api: 'https://api.mainnet.klever.org',
           node: 'https://node.mainnet.klever.org'
         });
-        console.log("✅ Provider Klever configurado para: api.mainnet.klever.org");
+        console.log("Provider Klever configurado para: api.mainnet.klever.org");
         await web.initialize();
-        // Testa se o node responde
+        // testa se o node responde
         const resp = await fetch('https://node.mainnet.klever.org/address/klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z/nonce');
         if (!resp.ok) throw new Error("Node mainnet indisponível");
         redeUsada = "mainnet";
       } catch (e) {
-        // Fallback para TESTNET
+        // fallback para TESTNET
         web.setProvider({
           api: 'https://api.testnet.klever.org',
           node: 'https://node.testnet.klever.org'
         });
-        console.log("⚠️ Provider Klever configurado para: api.testnet.klever.org");
+        console.log("Provider Klever configurado para: api.testnet.klever.org");
         await web.initialize();
         try {
           const resp = await fetch('https://node.testnet.klever.org/address/klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z/nonce');
@@ -307,26 +306,26 @@ btnConfirmarResumo.addEventListener("click", async () => {
         alert("A rede principal da Klever está fora do ar. Seu pagamento será simulado na testnet (NÃO ENVIE valores reais).");
       }
 
-      // Cotação do KLV (usa sempre mainnet para referência)
+      // cotação do KLV 
       const cotacao = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=klever&vs_currencies=brl')
         .then(r => r.json());
 
       const valorKLV = pedidoParaEnviar.total / cotacao.klever.brl;
-      const valorInteiro = Math.floor(valorKLV * 1e6); // <-- sempre número
+      const valorInteiro = Math.floor(valorKLV * 1e6); 
 
-      console.log("🔢 typeof amount:", typeof valorInteiro); // deve ser 'number'
+      console.log("typeof amount:", typeof valorInteiro); 
 
       const payload = {
-        amount: valorInteiro, // <-- sem aspas!
+        amount: valorInteiro, 
         receiver: "klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z",
         kda: "KLV"
       };
 
-      // Monta, assina e transmite
+      // monta, assina e transmite
       const unsignedTx = await web.buildTransaction([
         { payload, type: TransactionType.Transfer }
       ]);
-      console.log("🧾 Transação construída:", unsignedTx);
+      console.log("Transação construída:", unsignedTx);
       if (!unsignedTx) {
         alert("Não foi possível construir a transação. Verifique o valor e a conexão.");
         esconderLoader();
@@ -335,11 +334,11 @@ btnConfirmarResumo.addEventListener("click", async () => {
 
       const signedTx = await web.signTransaction(unsignedTx);
       const resultado = await web.broadcastTransactions([signedTx]);
-      // Correção definitiva:
+      
       const hash = resultado?.data?.txsHashes?.[0];
 
-      console.log("📡 Resposta do Klever SDK:", resultado);
-      console.log("📦 txHash detectado:", hash);
+      console.log("Resposta do Klever SDK:", resultado);
+      console.log("txHash detectado:", hash);
 
       if (!hash) {
         alert("Erro ao transmitir a transação.");
@@ -347,8 +346,6 @@ btnConfirmarResumo.addEventListener("click", async () => {
         return;
       }
 
-      // (Opcional) Abrir no KleverScan:
-      // window.open(`https://kleverscan.org/tx/${hash}`, "_blank");
 
       if (!pedidoParaEnviar.id) {
         pedidoParaEnviar.id = "pedido-" + Date.now();
@@ -383,7 +380,6 @@ btnConfirmarResumo.addEventListener("click", async () => {
       modalResumo.classList.add("hidden");
       mostrarLoader();
 
-      // Envia o pedido para o backend
       const res = await fetch("https://homepudimback.onrender.com/api/pagar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -392,7 +388,7 @@ btnConfirmarResumo.addEventListener("click", async () => {
 
       if (res.ok) {
         const data = await res.json();
-        // Redireciona para o link de pagamento do Asaas
+      
         if (data.url) {
           window.location.href = data.url;
         } else {
@@ -411,18 +407,18 @@ btnConfirmarResumo.addEventListener("click", async () => {
 });
 
 async function inicializarKleverProviderComFallback() {
-  // 1. Tenta mainnet via proxy oficial
+  // tenta mainnet via proxy oficial
   try {
     web.setProvider({
       api: 'https://proxy.mainnet.klever.org'
     });
     await web.initialize();
-    // Testa se o proxy responde (pega o nonce do endereço da loja)
+    // testa se o proxy responde
     const resp = await fetch('https://proxy.mainnet.klever.org/address/klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z/nonce');
     if (!resp.ok) throw new Error("Proxy mainnet indisponível");
     return { rede: "mainnet" };
   } catch (e) {
-    // 2. Fallback para testnet (proxy)
+    // fallback para testnet (proxy)
     web.setProvider({
       api: 'https://proxy.testnet.klever.org'
     });
@@ -437,7 +433,6 @@ async function inicializarKleverProviderComFallback() {
   }
 }
 
-// Loader simples para feedback visual
 function mostrarLoader() {
   let loader = document.getElementById("papudimLoader");
   if (!loader) {
@@ -492,7 +487,7 @@ function exibirToast(msg) {
 }
 
 function validarFormulario() {
-  // Habilita ou desabilita o botão de finalizar conforme os campos obrigatórios
+
   const nome = nomeClienteInput.value.trim();
   const email = emailClienteInput.value.trim();
   const celular = celularClienteInput.value.trim();
@@ -507,14 +502,14 @@ function validarFormulario() {
     carrinho.length === 0;
 }
 
-// Atualiza validação e barra de progresso ao digitar nos campos
+// atualiza validação e barra de progresso ao digitar nos campos
 [nomeClienteInput, emailClienteInput, celularClienteInput, formaPagamentoInput].forEach(input => {
   if (input) {
     input.addEventListener("input", () => {
       validarFormulario();
       atualizarBarraProgresso();
     });
-    // Para select (formaPagamento), também escuta 'change'
+    
     if (input.tagName === "SELECT") {
       input.addEventListener("change", () => {
         validarFormulario();
@@ -543,7 +538,7 @@ function validarFormulario() {
   }
 });
 
-// Atualiza barra de progresso separadamente
+
 function atualizarBarraProgresso() {
   const nomePreenchido = nomeClienteInput.value.trim() !== "";
   const pagamentoEscolhido = formaPagamentoInput.value !== "";
@@ -554,7 +549,6 @@ function atualizarBarraProgresso() {
   if (barraProgresso) barraProgresso.style.width = `${progresso}%`;
 }
 
-// Chama ao carregar a página
 validarFormulario();
 atualizarBarraProgresso();
 
