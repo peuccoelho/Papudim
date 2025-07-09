@@ -55,7 +55,7 @@ function verificarHorarioFuncionamento() {
 }
 
 verificarHorarioFuncionamento();
-// Atualiza o status a cada minuto
+
 setInterval(verificarHorarioFuncionamento, 60000);
 
 if (cardapioContainer) {
