@@ -9,17 +9,16 @@ import { dirname } from "path";
 import admin from "firebase-admin";
 import helmet from "helmet";
 
-// Função para manter o servidor acordado (ping)
+// função para manter o servidor acordado
 function manterServidorAcordado() {
   const url = process.env.PING_URL || "https://homepudimback.onrender.com/";
   setInterval(() => {
     fetch(url)
       .then(res => console.log(`[PING] Servidor pingado: ${url} - Status: ${res.status}`))
       .catch(err => console.error(`[PING] Erro ao pingar servidor:`, err));
-  }, 5 * 60 * 1000); // 5 minutos
+  }, 5 * 60 * 1000); 
 }
 
-// Inicia o loop de ping para manter o servidor acordado
 if (process.env.KEEP_AWAKE !== "false") {
   manterServidorAcordado();
 }
