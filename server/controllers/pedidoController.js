@@ -1,3 +1,22 @@
+// Deletar cliente/pedido por ID
+export async function deletarPedido(req, res) {
+  const { pedidosCollection } = req.app.locals;
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ erro: "ID do pedido é obrigatório" });
+  }
+  try {
+    const pedidoDoc = await pedidosCollection.doc(id).get();
+    if (!pedidoDoc.exists) {
+      return res.status(404).json({ erro: "Pedido não encontrado" });
+    }
+    await pedidosCollection.doc(id).delete();
+    res.json({ sucesso: true, mensagem: "Pedido/cliente excluído com sucesso." });
+  } catch (error) {
+    console.error("Erro ao excluir pedido:", error);
+    res.status(500).json({ erro: "Erro ao excluir pedido" });
+  }
+}
 import pkg from "@klever/sdk";
 const Transaction = pkg.Transaction;
 import fetch from "node-fetch";

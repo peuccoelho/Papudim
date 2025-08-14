@@ -301,10 +301,42 @@
                   class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs ml-2">
                   Enviar WhatsApp
                 </button>
+                <button onclick="excluirPedido('${pedido.id}')"
+                  class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs ml-2">
+                  Excluir
+                </button>
               </td>
             `;
             tabela.appendChild(linha);
           });
+        }
+      }
+      // Função para excluir cliente/pedido
+      async function excluirPedido(id) {
+        if (
+          !confirm(
+            "Tem certeza que deseja excluir este cliente/pedido? Esta ação não pode ser desfeita."
+          )
+        )
+          return;
+        try {
+          const res = await fetch(
+            `https://homepudimback.onrender.com/api/deletar-pedido/${id}`,
+            {
+              method: "DELETE",
+              headers: { Authorization: "Bearer " + token },
+              credentials: "include",
+            }
+          );
+          if (res.ok) {
+            alert("Cliente/pedido excluído com sucesso.");
+            carregarPedidos();
+          } else {
+            const erro = await res.json();
+            alert("Erro ao excluir: " + (erro.erro || "Tente novamente."));
+          }
+        } catch (e) {
+          alert("Erro ao excluir. Tente novamente.");
         }
       }
 
