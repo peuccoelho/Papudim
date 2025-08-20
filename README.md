@@ -70,15 +70,4 @@ O Papudim permite que clientes façam pedidos personalizados de pudins, acompanh
 
 ---
 
-## Endpoints Principais
-
-- `POST /api/pagar` — Cria um novo pedido e inicia o pagamento
-- `POST /api/pagamento-webhook` — Recebe notificações de pagamento da Asaas
-- `GET /api/status-pedido?id=...` — Consulta o status do pedido
-- `GET /api/admin-pedidos` — Lista todos os pedidos (admin/JWT)
-- `POST /api/login` — Login do administrador
-- `GET /api/insights` — (Microsserviço Python) Retorna estatísticas para o admin
-
----
-
 Desenvolvido para o Papudim.
