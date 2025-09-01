@@ -1,16 +1,16 @@
 import { web, TransactionType } from 'https://sdk.kleverscan.org/kleverchain-sdk-web-esm-1-0-x.js';
 
 const cardapio = [
-  { nome: "Pudim de Café", preco: 8.6, peso: "120g" },
-  { nome: "Pudim de Doce de Leite", preco: 8.9, peso: "120g" },
-  { nome: "Pudim Tradicional", preco: 7.9, peso: "120g" },
-  { nome: "Chocolate Branco c/ Calda de Caramelo", preco: 9.5, peso: "120g" },
-  { nome: "Chocolate Branco c/ Calda de Morango", preco: 10.6, peso: "120g" },
-  { nome: "Pudim de Coco", preco: 9.3, peso: "120g" },
-  { nome: "Pudim de Leite Ninho", preco: 9.1, peso: "120g" },
-  { nome: "Chocolate ao Leite c/ Calda de Maracujá", preco: 9.9, peso: "120g" },
-  { nome: "Chocolate ao Leite c/ Calda de Caramelo", preco: 9.9, peso: "120g" },
-  { nome: "Pudim de Abacaxi", preco: 8.9, peso: "120g" }
+  { nome: "Pudim de Café", preco: 8.6, peso: "120g", imagem: "img/pudim-cafe.jpg" },
+  { nome: "Pudim de Doce de Leite", preco: 8.9, peso: "120g", imagem: "img/pudim-doce-leite.jpg" },
+  { nome: "Pudim Tradicional", preco: 7.9, peso: "120g", imagem: "img/pudim-tradicional.jpg" },
+  { nome: "Chocolate Branco c/ Calda de Caramelo", preco: 9.5, peso: "120g", imagem: "img/pudim-chocobranco-caramelo.jpg" },
+  { nome: "Chocolate Branco c/ Calda de Morango", preco: 10.6, peso: "120g", imagem: "img/pudim-chocobranco-morango.jpg" },
+  { nome: "Pudim de Coco", preco: 9.3, peso: "120g", imagem: "img/pudim-coco.jpg" },
+  { nome: "Pudim de Leite Ninho", preco: 9.1, peso: "120g", imagem: "img/pudim-ninho.jpg" },
+  { nome: "Chocolate ao Leite c/ Calda de Maracujá", preco: 9.9, peso: "120g", imagem: "img/pudim-chocolate-maracuja.jpg" },
+  { nome: "Chocolate ao Leite c/ Calda de Caramelo", preco: 9.9, peso: "120g", imagem: "img/pudim-chocolate-caramelo.jpg" },
+  { nome: "Pudim de Abacaxi", preco: 8.9, peso: "120g", imagem: "img/pudim-abacaxi.jpg" }
 ];
 
 const carrinho = [];
@@ -61,11 +61,12 @@ if (cardapioContainer) {
   cardapio.forEach((item, index) => {
     const card = document.createElement("div");
     card.className =
-      "bg-white rounded-2xl p-5 shadow-md hover:shadow-xl cursor-pointer transition-all transform hover:scale-105 border border-[#c9b8a2] duration-300 opacity-0 animate-fade-in";
+      "bg-white rounded-2xl p-5 shadow-md hover:shadow-xl cursor-pointer transition-all transform hover:scale-105 border border-[#c9b8a2] duration-300 opacity-0 animate-fade-in flex flex-col items-center";
     card.innerHTML = `
-      <h3 class="text-lg font-semibold mb-1">${item.nome}</h3>
+      <img src="${item.imagem || 'img/placeholder.jpg'}" alt="${item.nome}" class="w-24 h-24 object-cover rounded-xl mb-2 border border-[#e2cdb0] bg-white shadow-sm" loading="lazy" />
+      <h3 class="text-lg font-semibold mb-1 text-center">${item.nome}</h3>
       <p class="text-sm text-gray-600 mb-2">Peso: ${item.peso}</p>
-      <p class="mb-4 font-medium">R$ ${item.preco.toFixed(2).replace(".", ",")}</p>
+      <p class="mb-4 font-medium">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
       <div class="flex gap-2">
         <input type="number" min="1" value="1" class="quantidadeInput w-16 text-center border rounded" id="quantidade-${index}" />
         <button class="bg-[#a47551] hover:bg-[#916546] text-white px-4 py-2 rounded-xl transition" onclick="adicionarAoCarrinho(${index})">
