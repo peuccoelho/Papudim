@@ -19,10 +19,13 @@
         font-family: "Quicksand", sans-serif;
         background: linear-gradient(135deg, #fdf6e3 0%, #f8e7d1 100%);
         color: #3e2c23;
+        padding-bottom: 120px; /* Espaço para carrinho flutuante */
       }
+
       .animate-fade-in {
         animation: fadeIn 0.6s ease forwards;
       }
+
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -34,93 +37,380 @@
         }
       }
 
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideDown {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(100%);
+        }
+      }
+
+      /* Header fixo moderno */
+      .header-fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 40;
+        backdrop-filter: blur(10px);
+        background: rgba(253, 246, 227, 0.95);
+        border-bottom: 1px solid rgba(164, 117, 81, 0.1);
+      }
+
+      /* Carrinho flutuante mobile */
+      .carrinho-flutuante {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+      }
+
+      .carrinho-flutuante.ativo {
+        transform: translateY(0);
+      }
+
+      /* Cards horizontais mobile */
+      .card-horizontal {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f3f4f6;
+        transition: all 0.2s ease;
+      }
+
+      .card-horizontal:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .card-horizontal img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 12px;
+        flex-shrink: 0;
+      }
+
+      .card-horizontal .content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .card-horizontal .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+
+      /* Botão de carrinho flutuante */
+      .btn-carrinho-flutuante {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 45;
+        background: #a47551;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 16px 24px;
+        font-weight: 600;
+        box-shadow: 0 4px 20px rgba(164, 117, 81, 0.3);
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-carrinho-flutuante:hover {
+        background: #916546;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(164, 117, 81, 0.4);
+      }
+
+      .btn-carrinho-flutuante .badge {
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        margin-left: 8px;
+      }
+
+      /* Responsividade */
       @media (max-width: 1024px) {
         .carrinho-aside {
           margin-bottom: 2rem;
         }
       }
 
-      @media (max-width: 640px) {
-        header {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 0.5rem;
-          padding: 1rem 0.5rem;
+      @media (max-width: 768px) {
+        body {
+          padding-top: 80px; /* Espaço para header fixo */
         }
-        header > a {
-          align-self: flex-start;
-          margin-bottom: 0.5rem;
-          padding: 0.5rem 1rem;
-          font-size: 0.95rem;
+
+        .header-fixed {
+          padding: 12px 16px;
         }
-        header > div.flex-col {
+
+        .header-fixed .logo-section {
+          flex-direction: row;
           align-items: center;
-          margin-bottom: 0.5rem;
+          gap: 12px;
         }
-        #status {
-          margin-top: 0.5rem;
-          align-self: center;
-          width: 100%;
-          text-align: center;
-          font-size: 0.95rem;
-          padding: 0.5rem 0.5rem;
+
+        .header-fixed .logo-section img {
+          width: 40px;
+          height: 40px;
         }
+
+        .header-fixed h1 {
+          font-size: 18px;
+        }
+
+        .header-fixed p {
+          font-size: 11px;
+        }
+
+        .carrinho-aside {
+          display: none; /* Esconder carrinho lateral em mobile */
+        }
+
+        .main-content {
+          padding: 0 16px;
+        }
+
+        .cardapio-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .card-horizontal {
+          margin-bottom: 0;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .header-fixed {
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+        }
+
+        .header-fixed .logo-section {
+          flex: 1;
+          justify-content: center;
+        }
+
+        .header-fixed .back-btn {
+          order: -1;
+          padding: 8px 12px;
+          font-size: 14px;
+        }
+
+        .header-fixed .status {
+          order: 1;
+          padding: 6px 12px;
+          font-size: 12px;
+          margin-left: 8px;
+        }
+      }
+
+      /* Animações de entrada */
+      .card-horizontal {
+        animation: slideInUp 0.5s ease forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .card-horizontal:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      .card-horizontal:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .card-horizontal:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      .card-horizontal:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+      .card-horizontal:nth-child(5) {
+        animation-delay: 0.5s;
+      }
+      .card-horizontal:nth-child(6) {
+        animation-delay: 0.6s;
+      }
+      .card-horizontal:nth-child(7) {
+        animation-delay: 0.7s;
+      }
+      .card-horizontal:nth-child(8) {
+        animation-delay: 0.8s;
+      }
+      .card-horizontal:nth-child(9) {
+        animation-delay: 0.9s;
+      }
+      .card-horizontal:nth-child(10) {
+        animation-delay: 1s;
+      }
+
+      @keyframes slideInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Input de quantidade moderno */
+      .quantidade-moderna {
+        display: flex;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+      }
+
+      .quantidade-moderna button {
+        background: #a47551;
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .quantidade-moderna button:hover {
+        background: #916546;
+      }
+
+      .quantidade-moderna input {
+        border: none;
+        background: transparent;
+        text-align: center;
+        width: 40px;
+        height: 32px;
+        font-weight: 600;
+        color: #3e2c23;
+      }
+
+      .quantidade-moderna input:focus {
+        outline: none;
+      }
+
+      /* Botão adicionar moderno */
+      .btn-adicionar-moderno {
+        background: linear-gradient(135deg, #a47551 0%, #916546 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(164, 117, 81, 0.2);
+      }
+
+      .btn-adicionar-moderno:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(164, 117, 81, 0.3);
+      }
+
+      .btn-adicionar-moderno:active {
+        transform: translateY(0);
       }
     </style>
   </head>
-  <body
-    class="p-2 sm:p-4 max-w-6xl mx-auto min-h-screen flex flex-col bg-gradient-to-br from-[#fdf6e3] to-[#fdf6e3]"
-  >
-    <header
-      class="relative mb-4 sm:mb-6 rounded-b-3xl flex items-center justify-between px-4 py-3 bg-gradient-to-br from-[#fdf6e3] to-[#fdf6e3]"
-    >
-      <!-- Botão de Voltar -->
-      <a
-        href="index.html"
-        class="flex items-center gap-2 text-white bg-[#a47551] px-3 py-2 rounded-lg hover:bg-[#916546] transition text-sm"
-      >
-        <svg
-          class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-        Voltar
-      </a>
-
-      <!-- Logo Centralizada -->
-      <div class="flex flex-col items-center">
-        <img
-          src="papudimlogo.png"
-          alt="Logo Papudim"
-          class="w-16 h-16 mx-auto mb-1 rounded-full shadow-lg border-4 border-[#e2cdb0] bg-white"
-        />
-        <h1 class="text-2xl font-bold text-[#a47551] drop-shadow">
-          🍮 Papudim
-        </h1>
-        <p class="text-xs text-[#a47551]">
-          Pudins artesanais feitos com carinho
-        </p>
-      </div>
-
-      <!-- Status de funcionamento -->
+  <body class="min-h-screen bg-gradient-to-br from-[#fdf6e3] to-[#fdf6e3]">
+    <!-- Header fixo moderno -->
+    <header class="header-fixed">
       <div
-        id="status"
-        class="text-white px-4 py-2 rounded-lg text-sm bg-[#916546]"
+        class="flex items-center justify-between w-full max-w-6xl mx-auto px-4 py-3"
       >
-        Verificando status...
+        <!-- Botão de Voltar -->
+        <a
+          href="index.html"
+          class="back-btn flex items-center gap-2 text-white bg-[#a47551] px-3 py-2 rounded-lg hover:bg-[#916546] transition text-sm"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          <span class="hidden sm:inline">Voltar</span>
+        </a>
+
+        <!-- Logo Centralizada -->
+        <div class="logo-section flex flex-col items-center">
+          <img
+            src="papudimlogo.png"
+            alt="Logo Papudim"
+            class="w-16 h-16 mx-auto mb-1 rounded-full shadow-lg border-4 border-[#e2cdb0] bg-white"
+          />
+          <h1 class="text-2xl font-bold text-[#a47551] drop-shadow">
+            🍮 Papudim
+          </h1>
+          <p class="text-xs text-[#a47551]">
+            Pudins artesanais feitos com carinho
+          </p>
+        </div>
+
+        <!-- Status de funcionamento -->
+        <div
+          id="status"
+          class="status text-white px-4 py-2 rounded-lg text-sm bg-[#916546]"
+        >
+          Verificando status...
+        </div>
       </div>
     </header>
 
-    <div class="flex flex-col-reverse lg:flex-row gap-6 sm:gap-8 w-full">
-      <!-- Carrinho -->
+    <!-- Conteúdo principal -->
+    <div
+      class="flex flex-col-reverse lg:flex-row gap-6 sm:gap-8 w-full max-w-6xl mx-auto px-4 py-6"
+    >
+      <!-- Carrinho Desktop -->
       <aside
         class="carrinho-aside w-full lg:w-1/3 bg-white/90 rounded-2xl shadow-md p-4 sm:p-6 mb-4 lg:mb-0 animate-fade-in max-h-[90vh] overflow-auto"
       >
@@ -215,15 +505,100 @@
       </aside>
 
       <!-- Cardápio -->
-      <main class="flex-1">
-        <h2 class="text-xl sm:text-2xl font-semibold mb-3 text-[#a47551]">
+      <main class="main-content flex-1">
+        <h2 class="text-xl sm:text-2xl font-semibold mb-6 text-[#a47551]">
           Escolha seus pudins
         </h2>
         <div
           id="cardapio"
-          class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6"
+          class="cardapio-grid grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6"
         ></div>
       </main>
+    </div>
+
+    <!-- Botão de carrinho flutuante mobile -->
+    <button id="btnCarrinhoFlutuante" class="btn-carrinho-flutuante">
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+        ></path>
+      </svg>
+      <span>Carrinho</span>
+      <span id="carrinhoBadge" class="badge" style="display: none">0</span>
+    </button>
+
+    <!-- Carrinho flutuante mobile -->
+    <div id="carrinhoFlutuante" class="carrinho-flutuante">
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-[#a47551]">Seu carrinho</h3>
+          <button id="fecharCarrinho" class="text-gray-500 hover:text-gray-700">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+
+        <div id="carrinhoMobile" class="mb-4 max-h-60 overflow-y-auto">
+          <!-- Itens do carrinho serão inseridos aqui -->
+        </div>
+
+        <div class="space-y-3">
+          <input
+            type="text"
+            id="nomeClienteMobile"
+            placeholder="Seu nome"
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
+          />
+          <input
+            type="email"
+            id="emailClienteMobile"
+            placeholder="Seu e-mail"
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
+          />
+          <input
+            type="tel"
+            id="celularClienteMobile"
+            placeholder="Seu celular (apenas números)"
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
+          />
+          <select
+            id="formaPagamentoMobile"
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
+          >
+            <option value="">Escolha a forma de pagamento</option>
+            <option value="PIX">PIX</option>
+            <option value="CREDIT_CARD">Cartão de Crédito</option>
+            <option value="CRIPTO">Criptomoeda (Klever)</option>
+          </select>
+
+          <button
+            id="finalizarPedidoMobile"
+            disabled
+            class="w-full bg-[#a47551] hover:bg-[#916546] text-white px-4 py-4 rounded-xl transition text-base font-semibold shadow-lg"
+          >
+            Finalizar Pedido
+          </button>
+        </div>
+      </div>
     </div>
 
     <div id="toastContainer" class="fixed top-4 right-4 space-y-2 z-50"></div>

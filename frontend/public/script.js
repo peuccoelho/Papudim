@@ -17,6 +17,7 @@ const carrinho = [];
 
 const cardapioContainer = document.getElementById("cardapio");
 const carrinhoContainer = document.getElementById("carrinho");
+const carrinhoMobile = document.getElementById("carrinhoMobile");
 const nomeClienteInput = document.getElementById("nomeCliente");
 const emailClienteInput = document.getElementById("emailCliente");
 const celularClienteInput = document.getElementById("celularCliente");
@@ -32,6 +33,17 @@ const modalResumo = document.getElementById("modalResumo");
 const resumoConteudo = document.getElementById("resumoConteudo");
 const btnCancelarResumo = document.getElementById("btnCancelarResumo");
 const btnConfirmarResumo = document.getElementById("btnConfirmarResumo");
+
+// Elementos do carrinho flutuante mobile
+const btnCarrinhoFlutuante = document.getElementById("btnCarrinhoFlutuante");
+const carrinhoFlutuante = document.getElementById("carrinhoFlutuante");
+const fecharCarrinho = document.getElementById("fecharCarrinho");
+const carrinhoBadge = document.getElementById("carrinhoBadge");
+const nomeClienteMobile = document.getElementById("nomeClienteMobile");
+const emailClienteMobile = document.getElementById("emailClienteMobile");
+const celularClienteMobile = document.getElementById("celularClienteMobile");
+const formaPagamentoMobile = document.getElementById("formaPagamentoMobile");
+const btnFinalizarMobile = document.getElementById("finalizarPedidoMobile");
 
 let pedidoParaEnviar = null;
 
@@ -60,20 +72,48 @@ setInterval(verificarHorarioFuncionamento, 60000);
 if (cardapioContainer) {
   cardapio.forEach((item, index) => {
     const card = document.createElement("div");
-    card.className =
-      "bg-white rounded-2xl p-5 shadow-md hover:shadow-xl cursor-pointer transition-all transform hover:scale-105 border border-[#c9b8a2] duration-300 opacity-0 animate-fade-in flex flex-col items-center";
-    card.innerHTML = `
-      <img src="${item.imagem || 'img/placeholder.jpg'}" alt="${item.nome}" class="w-24 h-24 object-cover rounded-xl mb-2 border border-[#e2cdb0] bg-white shadow-sm" loading="lazy" />
-      <h3 class="text-lg font-semibold mb-1 text-center">${item.nome}</h3>
-      <p class="text-sm text-gray-600 mb-2">Peso: ${item.peso}</p>
-      <p class="mb-4 font-medium">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
-      <div class="flex gap-2">
-        <input type="number" min="1" value="1" class="quantidadeInput w-16 text-center border rounded" id="quantidade-${index}" />
-        <button class="bg-[#a47551] hover:bg-[#916546] text-white px-4 py-2 rounded-xl transition" onclick="adicionarAoCarrinho(${index})">
-          Adicionar
-        </button>
-      </div>
-    `;
+    
+    // Detectar se é mobile
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      // Layout horizontal para mobile
+      card.className = "card-horizontal";
+      card.innerHTML = `
+        <img src="${item.imagem || 'img/placeholder.jpg'}" alt="${item.nome}" loading="lazy" />
+        <div class="content">
+          <h3 class="text-base font-semibold mb-1 text-[#3e2c23]">${item.nome}</h3>
+          <p class="text-xs text-gray-600 mb-1">${item.peso}</p>
+          <p class="text-lg font-bold text-[#a47551]">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
+        </div>
+        <div class="actions">
+          <div class="quantidade-moderna">
+            <button onclick="alterarQuantidade(${index}, -1)">-</button>
+            <input type="number" min="1" value="1" class="quantidadeInput" id="quantidade-${index}" readonly />
+            <button onclick="alterarQuantidade(${index}, 1)">+</button>
+          </div>
+          <button class="btn-adicionar-moderno" onclick="adicionarAoCarrinho(${index})">
+            Adicionar
+          </button>
+        </div>
+      `;
+    } else {
+      // Layout vertical para desktop
+      card.className = "bg-white rounded-2xl p-5 shadow-md hover:shadow-xl cursor-pointer transition-all transform hover:scale-105 border border-[#c9b8a2] duration-300 opacity-0 animate-fade-in flex flex-col items-center";
+      card.innerHTML = `
+        <img src="${item.imagem || 'img/placeholder.jpg'}" alt="${item.nome}" class="w-24 h-24 object-cover rounded-xl mb-2 border border-[#e2cdb0] bg-white shadow-sm" loading="lazy" />
+        <h3 class="text-lg font-semibold mb-1 text-center">${item.nome}</h3>
+        <p class="text-sm text-gray-600 mb-2">Peso: ${item.peso}</p>
+        <p class="mb-4 font-medium">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
+        <div class="flex gap-2">
+          <input type="number" min="1" value="1" class="quantidadeInput w-16 text-center border rounded" id="quantidade-${index}" />
+          <button class="bg-[#a47551] hover:bg-[#916546] text-white px-4 py-2 rounded-xl transition" onclick="adicionarAoCarrinho(${index})">
+            Adicionar
+          </button>
+        </div>
+      `;
+    }
+    
     cardapioContainer.appendChild(card);
   });
 }
@@ -95,6 +135,38 @@ function adicionarAoCarrinho(index) {
 }
 
 window.adicionarAoCarrinho = adicionarAoCarrinho;
+
+// Função para alterar quantidade nos cards mobile
+function alterarQuantidade(index, delta) {
+  const quantidadeInput = document.getElementById(`quantidade-${index}`);
+  const novaQuantidade = Math.max(1, parseInt(quantidadeInput.value) + delta);
+  quantidadeInput.value = novaQuantidade;
+}
+
+window.alterarQuantidade = alterarQuantidade;
+
+// Event listeners para carrinho flutuante mobile
+if (btnCarrinhoFlutuante) {
+  btnCarrinhoFlutuante.addEventListener("click", () => {
+    carrinhoFlutuante.classList.add("ativo");
+    atualizarCarrinhoMobile();
+  });
+}
+
+if (fecharCarrinho) {
+  fecharCarrinho.addEventListener("click", () => {
+    carrinhoFlutuante.classList.remove("ativo");
+  });
+}
+
+// Fechar carrinho ao clicar fora
+if (carrinhoFlutuante) {
+  carrinhoFlutuante.addEventListener("click", (e) => {
+    if (e.target === carrinhoFlutuante) {
+      carrinhoFlutuante.classList.remove("ativo");
+    }
+  });
+}
 
 function removerDoCarrinho(i) {
   carrinho.splice(i, 1);
@@ -120,6 +192,7 @@ function atualizarCarrinho() {
       '<li class="text-gray-500 italic">Nenhum item no carrinho</li>';
     
     validarFormulario();
+    atualizarCarrinhoMobile();
     return;
   }
 
@@ -143,6 +216,7 @@ function atualizarCarrinho() {
   carrinhoContainer.appendChild(totalLi);
 
   validarFormulario();
+  atualizarCarrinhoMobile();
 
   const aviso = document.getElementById("avisoMinimo");
   if (aviso) {
@@ -158,6 +232,74 @@ function atualizarCarrinho() {
     (pagamentoEscolhido ? 34 : 0);
   if (barraProgresso) barraProgresso.style.width = `${progresso}%`;
 }
+
+// Função para atualizar carrinho mobile
+function atualizarCarrinhoMobile() {
+  if (!carrinhoMobile) return;
+  
+  carrinhoMobile.innerHTML = "";
+
+  if (carrinho.length === 0) {
+    carrinhoMobile.innerHTML = '<p class="text-gray-500 italic text-center py-4">Nenhum item no carrinho</p>';
+    if (carrinhoBadge) {
+      carrinhoBadge.style.display = "none";
+    }
+    return;
+  }
+
+  carrinho.forEach((item, i) => {
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2";
+    
+    itemDiv.innerHTML = `
+      <div class="flex-1">
+        <h4 class="font-semibold text-sm text-[#3e2c23]">${escapeHTML(item.nome)}</h4>
+        <p class="text-xs text-gray-600">${escapeHTML(item.peso)}</p>
+        <p class="text-sm font-bold text-[#a47551]">R$ ${(item.preco * item.quantidade).toFixed(2).replace(".", ",")}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="quantidade-moderna">
+          <button onclick="atualizarQuantidadeMobile(${i}, -1)">-</button>
+          <input type="number" min="1" value="${item.quantidade}" class="quantidadeInput" readonly />
+          <button onclick="atualizarQuantidadeMobile(${i}, 1)">+</button>
+        </div>
+        <button onclick="removerDoCarrinho(${i})" class="text-red-500 hover:text-red-700 p-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </button>
+      </div>
+    `;
+    carrinhoMobile.appendChild(itemDiv);
+  });
+
+  const total = carrinho.reduce((sum, item) => sum + item.preco * item.quantidade, 0);
+  const totalDiv = document.createElement("div");
+  totalDiv.className = "border-t border-gray-200 pt-3 mt-3 flex justify-between items-center font-bold text-lg";
+  totalDiv.innerHTML = `
+    <span>Total</span>
+    <span class="text-[#a47551]">R$ ${total.toFixed(2).replace(".", ",")}</span>
+  `;
+  carrinhoMobile.appendChild(totalDiv);
+
+  // Atualizar badge do carrinho
+  if (carrinhoBadge) {
+    const totalItens = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
+    carrinhoBadge.textContent = totalItens;
+    carrinhoBadge.style.display = totalItens > 0 ? "flex" : "none";
+  }
+
+  validarFormularioMobile();
+}
+
+// Função para atualizar quantidade no carrinho mobile
+function atualizarQuantidadeMobile(index, delta) {
+  const novaQuantidade = Math.max(1, carrinho[index].quantidade + delta);
+  carrinho[index].quantidade = novaQuantidade;
+  atualizarCarrinho();
+}
+
+window.atualizarQuantidadeMobile = atualizarQuantidadeMobile;
 
 function escapeHTML(str) {
   return String(str)
@@ -503,6 +645,23 @@ function validarFormulario() {
     carrinho.length === 0;
 }
 
+// Função de validação para formulário mobile
+function validarFormularioMobile() {
+  if (!nomeClienteMobile || !emailClienteMobile || !celularClienteMobile || !formaPagamentoMobile || !btnFinalizarMobile) return;
+
+  const nome = nomeClienteMobile.value.trim();
+  const email = emailClienteMobile.value.trim();
+  const celular = celularClienteMobile.value.trim();
+  const pagamento = formaPagamentoMobile.value;
+
+  btnFinalizarMobile.disabled =
+    !nome ||
+    !email ||
+    !celular ||
+    !pagamento ||
+    carrinho.length === 0;
+}
+
 // atualiza validação e barra de progresso ao digitar nos campos
 [nomeClienteInput, emailClienteInput, celularClienteInput, formaPagamentoInput].forEach(input => {
   if (input) {
@@ -552,4 +711,114 @@ function atualizarBarraProgresso() {
 
 validarFormulario();
 atualizarBarraProgresso();
+
+// Event listeners para campos mobile
+[nomeClienteMobile, emailClienteMobile, celularClienteMobile, formaPagamentoMobile].forEach(input => {
+  if (input) {
+    input.addEventListener("input", () => {
+      validarFormularioMobile();
+    });
+    
+    if (input.tagName === "SELECT") {
+      input.addEventListener("change", () => {
+        validarFormularioMobile();
+      });
+    }
+  }
+});
+
+// Event listener para finalizar pedido mobile
+if (btnFinalizarMobile) {
+  btnFinalizarMobile.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    const nome = nomeClienteMobile.value.trim();
+    const email = emailClienteMobile.value.trim();
+    const celular = celularClienteMobile.value.trim();
+    const pagamento = formaPagamentoMobile.value;
+
+    if (!nome || !email || !celular || !pagamento) {
+      exibirToast("Preencha todos os campos antes de finalizar o pedido.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      exibirToast("Digite um e-mail válido.");
+      return;
+    }
+    if (!/^\d{10,15}$/.test(celular.replace(/\D/g, ""))) {
+      exibirToast("Digite um número de celular válido (apenas números, com DDD).");
+      return;
+    }
+
+    // Sincronizar dados com formulário desktop
+    if (nomeClienteInput) nomeClienteInput.value = nome;
+    if (emailClienteInput) emailClienteInput.value = email;
+    if (celularClienteInput) celularClienteInput.value = celular;
+    if (formaPagamentoInput) formaPagamentoInput.value = pagamento;
+
+    // Fechar carrinho mobile
+    carrinhoFlutuante.classList.remove("ativo");
+
+    // Simular clique no botão desktop
+    if (btnFinalizar) {
+      btnFinalizar.click();
+    }
+  });
+}
+
+// Detectar mudança de tamanho de tela e recriar cards
+window.addEventListener('resize', () => {
+  if (cardapioContainer) {
+    // Limpar cards existentes
+    cardapioContainer.innerHTML = '';
+    
+    // Recriar cards com layout apropriado
+    cardapio.forEach((item, index) => {
+      const card = document.createElement("div");
+      
+      // Detectar se é mobile
+      const isMobile = window.innerWidth <= 768;
+      
+      if (isMobile) {
+        // Layout horizontal para mobile
+        card.className = "card-horizontal";
+        card.innerHTML = `
+          <img src="${item.imagem || 'img/placeholder.jpg'}" alt="${item.nome}" loading="lazy" />
+          <div class="content">
+            <h3 class="text-base font-semibold mb-1 text-[#3e2c23]">${item.nome}</h3>
+            <p class="text-xs text-gray-600 mb-1">${item.peso}</p>
+            <p class="text-lg font-bold text-[#a47551]">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
+          </div>
+          <div class="actions">
+            <div class="quantidade-moderna">
+              <button onclick="alterarQuantidade(${index}, -1)">-</button>
+              <input type="number" min="1" value="1" class="quantidadeInput" id="quantidade-${index}" readonly />
+              <button onclick="alterarQuantidade(${index}, 1)">+</button>
+            </div>
+            <button class="btn-adicionar-moderno" onclick="adicionarAoCarrinho(${index})">
+              Adicionar
+            </button>
+          </div>
+        `;
+      } else {
+        // Layout vertical para desktop
+        card.className = "bg-white rounded-2xl p-5 shadow-md hover:shadow-xl cursor-pointer transition-all transform hover:scale-105 border border-[#c9b8a2] duration-300 opacity-0 animate-fade-in flex flex-col items-center";
+        card.innerHTML = `
+          <img src="${item.imagem || 'img/placeholder.jpg'}" alt="${item.nome}" class="w-24 h-24 object-cover rounded-xl mb-2 border border-[#e2cdb0] bg-white shadow-sm" loading="lazy" />
+          <h3 class="text-lg font-semibold mb-1 text-center">${item.nome}</h3>
+          <p class="text-sm text-gray-600 mb-2">Peso: ${item.peso}</p>
+          <p class="mb-4 font-medium">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
+          <div class="flex gap-2">
+            <input type="number" min="1" value="1" class="quantidadeInput w-16 text-center border rounded" id="quantidade-${index}" />
+            <button class="bg-[#a47551] hover:bg-[#916546] text-white px-4 py-2 rounded-xl transition" onclick="adicionarAoCarrinho(${index})">
+              Adicionar
+            </button>
+          </div>
+        `;
+      }
+      
+      cardapioContainer.appendChild(card);
+    });
+  }
+});
 
