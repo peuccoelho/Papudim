@@ -1,0 +1,24 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#f8f4f1"/>
+  
+  <!-- Plate -->
+  <ellipse cx="100" cy="160" rx="80" ry="20" fill="#e8e8e8"/>
+  
+  <!-- Pudim base -->
+  <ellipse cx="100" cy="140" rx="60" ry="50" fill="#f4f1db"/>
+  
+  <!-- Pudim top -->
+  <ellipse cx="100" cy="120" rx="55" ry="45" fill="#e8ddc7"/>
+  
+  <!-- Caramel sauce -->
+  <ellipse cx="100" cy="110" rx="50" ry="40" fill="#d4a574"/>
+  
+  <!-- Dulce de leche decoration -->
+  <circle cx="90" cy="100" r="2" fill="#8b4513"/>
+  <circle cx="110" cy="105" r="2" fill="#8b4513"/>
+  <circle cx="100" cy="95" r="2" fill="#8b4513"/>
+  
+  <!-- Text -->
+  <text x="100" y="190" text-anchor="middle" fill="#7a6641" font-size="12" font-family="Arial">Doce de Leite</text>
+</svg>
