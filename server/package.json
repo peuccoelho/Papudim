@@ -11,8 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@klever/sdk": "^4.2.3",
-    "@klever/sdk-node": "^2.4.1",
     "axios": "^1.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -21,7 +19,6 @@
     "firebase-admin": "^13.4.0",
     "jsonwebtoken": "^9.0.2",
     "mercadopago": "^2.7.0",
-    "moralis": "^2.27.2",
     "node-fetch": "^3.3.2"
   }
 }

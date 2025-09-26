@@ -1,4 +1,3 @@
-import { web, TransactionType } from 'https://sdk.kleverscan.org/kleverchain-sdk-web-esm-1-0-x.js';
 
 const cardapio = [
   { nome: "Pudim de Café", preco: 8.6, peso: "120g", imagem: "img/pudim-cafe.svg" },
@@ -21,7 +20,6 @@ const nomeClienteInput = document.getElementById("nomeCliente");
 const emailClienteInput = document.getElementById("emailCliente");
 const celularClienteInput = document.getElementById("celularCliente");
 const formaPagamentoInput = document.getElementById("formaPagamento");
-const avisoKlever = document.getElementById("avisoKlever");
 const btnFinalizar = document.getElementById("finalizarPedido");
 const toggleInfo = document.getElementById("toggleInfo");
 const infoSection = document.getElementById("infoSection");
@@ -196,16 +194,6 @@ btnFinalizar.addEventListener("click", async (e) => {
     carrinho.reduce((sum, item) => sum + item.preco * item.quantidade, 0).toFixed(2)
   );
 
-  let valorKLVResumo = null;
-  if (pagamento === "CRIPTO") {
-    try {
-      const cotacao = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=klever&vs_currencies=brl')
-        .then(r => r.json());
-      valorKLVResumo = (total / cotacao.klever.brl).toFixed(2);
-    } catch (e) {
-      valorKLVResumo = null;
-    }
-  }
 
   
   pedidoParaEnviar = {
@@ -242,16 +230,11 @@ btnFinalizar.addEventListener("click", async (e) => {
     if (parcelas > 1) {
       html += ` (${parcelas}x)`;
     }
-  } else if (pagamento === "CRIPTO") {
-    html += "Criptomoeda (Klever)";
   } else {
     html += escapeHTML(pagamento);
   }
   html += `</div>`;
 
-  if (pagamento === "CRIPTO" && valorKLVResumo) {
-    html += `<div class="mb-1"><b>Total em KLV:</b> ${valorKLVResumo} KLV</div>`;
-  }
 
   html += `<div class="mt-2 text-lg font-bold">Total: R$ ${total.toFixed(2).replace(".", ",")}</div>`;
 
@@ -266,114 +249,7 @@ btnCancelarResumo.addEventListener("click", () => {
 
 
 btnConfirmarResumo.addEventListener("click", async () => {
-  if (pedidoParaEnviar.pagamento === "CRIPTO") {
-    try {
-      modalResumo.classList.add("hidden");
-      mostrarLoader();
-
-      let redeUsada = "mainnet";
-      try {
-        // provider MAINNET
-        web.setProvider({
-          api: 'https://api.mainnet.klever.org',
-          node: 'https://node.mainnet.klever.org'
-        });
-        console.log("Provider Klever configurado para: api.mainnet.klever.org");
-        await web.initialize();
-        // testa se o node responde
-        const resp = await fetch('https://node.mainnet.klever.org/address/klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z/nonce');
-        if (!resp.ok) throw new Error("Node mainnet indisponível");
-        redeUsada = "mainnet";
-      } catch (e) {
-        // fallback para TESTNET
-        web.setProvider({
-          api: 'https://api.testnet.klever.org',
-          node: 'https://node.testnet.klever.org'
-        });
-        console.log("Provider Klever configurado para: api.testnet.klever.org");
-        await web.initialize();
-        try {
-          const resp = await fetch('https://node.testnet.klever.org/address/klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z/nonce');
-          if (!resp.ok) throw new Error("Node testnet indisponível");
-          redeUsada = "testnet";
-        } catch (e2) {
-          alert("Não foi possível conectar à rede Klever. Tente novamente mais tarde.");
-          esconderLoader();
-          return;
-        }
-      }
-
-      if (redeUsada === "testnet") {
-        alert("A rede principal da Klever está fora do ar. Seu pagamento será simulado na testnet (NÃO ENVIE valores reais).");
-      }
-
-      // cotação do KLV 
-      const cotacao = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=klever&vs_currencies=brl')
-        .then(r => r.json());
-
-      const valorKLV = pedidoParaEnviar.total / cotacao.klever.brl;
-      const valorInteiro = Math.floor(valorKLV * 1e6); 
-
-      console.log("typeof amount:", typeof valorInteiro); 
-
-      const payload = {
-        amount: valorInteiro, 
-        receiver: "klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z",
-        kda: "KLV"
-      };
-
-      // monta, assina e transmite
-      const unsignedTx = await web.buildTransaction([
-        { payload, type: TransactionType.Transfer }
-      ]);
-      console.log("Transação construída:", unsignedTx);
-      if (!unsignedTx) {
-        alert("Não foi possível construir a transação. Verifique o valor e a conexão.");
-        esconderLoader();
-        return;
-      }
-
-      const signedTx = await web.signTransaction(unsignedTx);
-      const resultado = await web.broadcastTransactions([signedTx]);
-      
-      const hash = resultado?.data?.txsHashes?.[0];
-
-      console.log("Resposta do Klever SDK:", resultado);
-      console.log("txHash detectado:", hash);
-
-      if (!hash) {
-        alert("Erro ao transmitir a transação.");
-        esconderLoader();
-        return;
-      }
-
-
-      if (!pedidoParaEnviar.id) {
-        pedidoParaEnviar.id = "pedido-" + Date.now();
-      }
-      const pedidoId = pedidoParaEnviar.id;
-      localStorage.setItem("hashTransacao_" + pedidoId, hash);
-
-      const res = await fetch("https://homepudimback.onrender.com/api/pagamento-cripto", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pedido: pedidoParaEnviar, txHash: hash })
-      });
-
-      if (res.ok) {
-        alert("Transação enviada! Aguardando confirmação na blockchain.");
-        window.location.href = "aguardando.html?id=" + pedidoParaEnviar.id;
-      } else {
-        alert("Erro ao registrar pedido no servidor.");
-      }
-
-    } catch (e) {
-      console.error("Erro no envio do pedido:", e);
-      alert("Erro ao processar pagamento com cripto.");
-    } finally {
-      esconderLoader();
-    }
-  } else if (
+  if (
     pedidoParaEnviar.pagamento === "PIX" ||
     pedidoParaEnviar.pagamento === "CREDIT_CARD"
   ) {
@@ -407,32 +283,6 @@ btnConfirmarResumo.addEventListener("click", async () => {
   }
 });
 
-async function inicializarKleverProviderComFallback() {
-  // tenta mainnet via proxy oficial
-  try {
-    web.setProvider({
-      api: 'https://proxy.mainnet.klever.org'
-    });
-    await web.initialize();
-    // testa se o proxy responde
-    const resp = await fetch('https://proxy.mainnet.klever.org/address/klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z/nonce');
-    if (!resp.ok) throw new Error("Proxy mainnet indisponível");
-    return { rede: "mainnet" };
-  } catch (e) {
-    // fallback para testnet (proxy)
-    web.setProvider({
-      api: 'https://proxy.testnet.klever.org'
-    });
-    await web.initialize();
-    try {
-      const resp = await fetch('https://proxy.testnet.klever.org/address/klv1mhwnrlrpzpv0vegq6tu5khjn7m27azrvt44l328765yh6aq4xheq5vgn4z/nonce');
-      if (!resp.ok) throw new Error("Proxy testnet indisponível");
-      return { rede: "testnet" };
-    } catch (e2) {
-      throw new Error("Nenhum endpoint Klever disponível no momento.");
-    }
-  }
-}
 
 function mostrarLoader() {
   let loader = document.getElementById("papudimLoader");
@@ -516,22 +366,15 @@ function validarFormulario() {
         validarFormulario();
         atualizarBarraProgresso();
         
-        // Mostrar/esconder aviso do Klever baseado na forma de pagamento
+        // Mostrar/esconder opções baseado na forma de pagamento
         if (input.id === "formaPagamento") {
-          const avisoKlever = document.getElementById("avisoKlever");
           const selectParcelas = document.getElementById("parcelas");
           
-          if (input.value === "CRIPTO") {
-            avisoKlever?.classList.remove("hidden");
-            selectParcelas.style.display = "none";
+          // Mostrar parcelas apenas para cartão de crédito
+          if (input.value === "CREDIT_CARD") {
+            selectParcelas.style.display = "block";
           } else {
-            avisoKlever?.classList.add("hidden");
-            // Mostrar parcelas apenas para cartão de crédito
-            if (input.value === "CREDIT_CARD") {
-              selectParcelas.style.display = "block";
-            } else {
-              selectParcelas.style.display = "none";
-            }
+            selectParcelas.style.display = "none";
           }
         }
       });

@@ -17,14 +17,10 @@ export async function deletarPedido(req, res) {
     res.status(500).json({ erro: "Erro ao excluir pedido" });
   }
 }
-import pkg from "@klever/sdk";
-const Transaction = pkg.Transaction;
 import fetch from "node-fetch";
 import axios from "axios";
 import { sanitizeInput } from "../utils/sanitize.js";
 import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
-import { gerarPayloadKlever } from "../services/kleverService.js";
-import { Account, TransactionType } from "@klever/sdk-node";
 
 const PRECOS_PRODUTOS = {
   "Pudim de Café": 8.6,
@@ -39,36 +35,6 @@ const PRECOS_PRODUTOS = {
   "Pudim de Abacaxi": 8.9
 };
 
-// cache simples para cotação (1 minuto)
-let cacheCotacaoKLV = { valor: null, timestamp: 0 };
-
-async function obterCotacaoKLV() {
-  const agora = Date.now();
-  if (cacheCotacaoKLV.valor && agora - cacheCotacaoKLV.timestamp < 60000) {
-    return cacheCotacaoKLV.valor;
-  }
-  try {
-    const response = await axios.get(
-      "https://deep-index.moralis.io/api/v2/erc20/price",
-      {
-        params: {
-          chain: "eth",
-          address: "0x6381e717cD4f9EFc4D7FB1a935cD755b6F3fFfAa", 
-        },
-        headers: {
-          "X-API-Key": process.env.MORALIS_API_KEY,
-        },
-      }
-    );
-    const precoUSD = response.data.usdPrice;
-    const precoBRL = precoUSD * 5.2; 
-    cacheCotacaoKLV = { valor: precoBRL, timestamp: agora };
-    return precoBRL;
-  } catch (error) {
-    console.error("Erro ao consultar cotação na Moralis:", error.message);
-    return 0.01; 
-  }
-}
 
 export async function criarPedido(req, res) {
   console.log("Recebido pedido:", req.body); 
@@ -139,18 +105,6 @@ export async function criarPedido(req, res) {
   await pedidosCollection.doc(pedidoId).set(pedido);
   console.log("Pedido salvo no Firebase com sucesso");
 
-  if (pedido.pagamento === "CRIPTO" && req.body.txHash) {
-    pedido.txHash = req.body.txHash;
-    await pedidosCollection.doc(pedidoId).update({ txHash: req.body.txHash });
-
-    // monitoramento do hash
-    monitorarTransacaoKlever(pedidoId, req.body.txHash, pedidosCollection, pedido);
-
-    return res.json({
-      mensagem: "Pedido registrado. Aguardando confirmação na blockchain.",
-      pedidoId
-    });
-  }
 
   const { cliente, email, celular, total, pagamento, parcelas } = pedido;
 
@@ -313,38 +267,8 @@ export async function statusPedido(req, res) {
       return res.json({ status: pedido.status });
     }
 
-    if (pedido.pagamento !== "CRIPTO" || !pedido.txHash) {
-      console.log("Retornando status para pagamento não-cripto:", pedido.status);
-      return res.json({ status: pedido.status });
-    }
-
-    const hash = pedido.txHash;
-    if (!hash) {
-      return res.status(400).json({ erro: "Hash da transação não encontrado para o pedido" });
-    }
-
-    // status da transação na KleverChain usando o hash correto
-    const resp = await fetch(`https://api.mainnet.klever.org/v1.0/transaction/${hash}`);
-    const tx = await resp.json();
-    console.log("Consulta status-pedido:", id, "Hash:", hash, "Resposta:", JSON.stringify(tx));
-
-    // check status e resultCode 
-    const kleverTx = tx.data?.transaction || tx;
-    const statusKlever = kleverTx.status?.toLowerCase?.();
-    const resultCode =
-      tx.data?.transaction?.resultCode ||
-      tx.resultCode ||
-      tx.data?.resultCode;
-
-    if (
-      (statusKlever === "success" || statusKlever === "successful" || statusKlever === "confirmed") &&
-      (resultCode === "Ok" || resultCode === "ok")
-    ) {
-      await pedidosCollection.doc(id).update({ status: "pago" });
-      return res.json({ status: "pago" });
-    }
-
-    return res.json({ status: "pendente" });
+    console.log("Retornando status do pedido:", pedido.status);
+    return res.json({ status: pedido.status });
   } catch (error) {
     console.error("Erro ao consultar pedido:", error);
     res.status(500).json({ erro: "Erro ao consultar status" });
@@ -381,101 +305,3 @@ export async function atualizarStatusPedido(req, res) {
   }
 }
 
-
-export async function criarPedidoCripto(req, res) {
-  const { pedidosCollection } = req.app.locals;
-  try {
-    const { pedido, txHash } = req.body;
-
-    if (!pedido || !txHash) {
-      console.warn("Pedido ou hash ausentes na requisição:", req.body);
-      return res.status(400).json({ erro: "Pedido ou txHash ausentes." });
-    }
-
-    const cotacaoBRL = await obterCotacaoKLV();
-    if (!cotacaoBRL || cotacaoBRL <= 0) {
-      return res.status(503).json({
-        erro: "Cotação do KLV indisponível no momento. Tente novamente em instantes.",
-        detalhe: cotacaoBRL
-      });
-    }
-
-    const valorKLV = pedido.total / cotacaoBRL;
-    const valorInteiro = Math.floor(valorKLV * 1e6);
-
-    const pedidoId = pedido.id || `pedido-${Date.now()}`;
-    const pedidoSalvo = {
-      ...pedido,
-      id: pedidoId,
-      txHash,
-      valorKLV: valorInteiro,
-      status: "pendente"
-    };
-
-    await pedidosCollection.doc(pedidoId).set(pedidoSalvo);
-
-    monitorarTransacaoKlever(pedidoId, txHash, pedidosCollection, pedidoSalvo);
-
-    res.json({ pedidoId, hash: txHash });
-  } catch (erro) {
-    console.error("Erro no back-end ao processar pedido:", erro);
-    res.status(500).json({ erro: "Erro interno no servidor." });
-  }
-}
-
-async function monitorarTransacaoKlever(pedidoId, hash, pedidosCollection, pedidoOriginal) {
-  let tentativas = 0;
-  const max = 30;
-
-  const intervalo = setInterval(async () => {
-    try {
-      const res = await fetch(`https://api.mainnet.klever.org/v1.0/transaction/${hash}`);
-      const tx = await res.json();
-      console.log("[Klever] Resposta para hash", hash, ":", JSON.stringify(tx));
-
-      const statusKlever =
-        tx.data?.transaction?.status?.toLowerCase?.() ||
-        tx.status?.toLowerCase?.() ||
-        tx.data?.status?.toLowerCase?.() ||
-        tx.result?.status?.toLowerCase?.();
-
-      const resultCode =
-        tx.data?.transaction?.resultCode ||
-        tx.resultCode ||
-        tx.data?.resultCode;
-
-      console.log("statusKlever:", statusKlever, "| resultCode:", resultCode);
-
-      if (
-        (statusKlever === "success" || statusKlever === "successful" || statusKlever === "confirmed") &&
-        (resultCode === "Ok" || resultCode === "ok")
-      ) {
-        console.log("Entrou no if success. Vai atualizar status e enviar WhatsApp.");
-
-        await pedidosCollection.doc(pedidoId).update({ status: "a fazer" });
-
-        // pedido atualizado do Firestore para garantir todos os campos
-        const pedidoDoc = await pedidosCollection.doc(pedidoId).get();
-        const pedidoAtualizado = pedidoDoc.exists ? pedidoDoc.data() : pedidoOriginal;
-        pedidoAtualizado.status = "a fazer";
-
-        try {
-          console.log("Chamando enviarWhatsAppPedido...");
-          await enviarWhatsAppPedido(pedidoAtualizado);
-          console.log("enviarWhatsAppPedido executado.");
-        } catch (e) {
-          console.error("Erro ao enviar WhatsApp após confirmação:", e.message);
-        }
-
-        clearInterval(intervalo);
-      }
-    } catch (e) {
-      console.warn("Erro monitorando hash:", hash, e.message);
-    }
-
-    if (++tentativas >= max) {
-      clearInterval(intervalo);
-      console.warn("Timeout ao monitorar hash:", hash);
-    }
-  }, 10000);
-}

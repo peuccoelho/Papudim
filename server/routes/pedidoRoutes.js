@@ -1,5 +1,5 @@
 import express from "express";
-import { criarPedido, pagamentoWebhook, statusPedido, adminPedidos, atualizarStatusPedido, criarPedidoCripto, deletarPedido } from "../controllers/pedidoController.js";
+import { criarPedido, pagamentoWebhook, statusPedido, adminPedidos, atualizarStatusPedido, deletarPedido } from "../controllers/pedidoController.js";
 import { autenticar } from "../middlewares/authMiddleware.js";
 import { pedidoLimiter } from "../middlewares/rateLimit.js";
 
@@ -13,7 +13,6 @@ router.put("/atualizar-status", autenticar, atualizarStatusPedido);
 
 // Deletar cliente/pedido (admin)
 router.delete("/deletar-pedido/:id", autenticar, deletarPedido);
-router.post("/pagamento-cripto", criarPedidoCripto);
 
 // endpoint de debug para verificar pedidos
 router.get("/debug-pedido", async (req, res) => {
