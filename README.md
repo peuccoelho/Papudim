@@ -1,12 +1,12 @@
 # Papudim - Sistema de Pedidos Online
 
-Este repositório contém o **Papudim**, um sistema completo para pedidos online de pudins artesanais, incluindo frontend, backend e um microsserviço de insights para administração.
+Sistema completo para pedidos online de pudins artesanais, incluindo frontend, backend e um microsserviço de insights para administração.
 
 ---
 
 ## Visão Geral
 
-O Papudim permite que clientes façam pedidos personalizados de pudins, acompanhem o status do pagamento e que o administrador gerencie os pedidos e visualize insights de vendas. O sistema é composto por três partes principais:
+O sistema permite que clientes façam pedidos personalizados de pudins, acompanhem o status do pagamento e que o administrador gerencie os pedidos e visualize insights de vendas. O sistema é composto por três partes principais:
 
 - **Frontend:** Interface web para clientes e admin.
 - **Backend:** API Node.js/Express para processar pedidos, pagamentos e autenticação.
@@ -16,13 +16,13 @@ O Papudim permite que clientes façam pedidos personalizados de pudins, acompanh
 
 ## Tecnologias Utilizadas
 
-- **Frontend:** HTML, CSS (Tailwind), JavaScript
-- **Backend:** Node.js, Express, Firebase Firestore, JWT, dotenv, helmet, cors, node-fetch
+- **Frontend:** HTML, CSS (Tailwind), JavaScript.
+- **Backend:** Node.js, Express, Firebase Firestore.
 - **Microsserviço de Insights:** Python (Flask), integração via HTTP
 - **APIs Externas:**
-  - **Asaas API:** Emissão de cobranças e pagamentos (PIX, cartão)
-  - **Firebase Firestore:** Armazenamento dos pedidos
-  - **CallMeBot API:** Notificações via WhatsApp
+  - **Asaas API:** Emissão de cobranças e pagamentos (PIX, cartão).
+  - **Firebase Firestore:** Armazenamento dos pedidos.
+  - **CallMeBot API:** Notificações via WhatsApp.
 
 ---
 
