@@ -1,15 +1,10 @@
 
 const cardapio = [
-  { nome: "Pudim de Café", preco: 8.6, peso: "120g", imagem: "img/pudim-cafe.svg" },
-  { nome: "Pudim de Doce de Leite", preco: 8.9, peso: "120g", imagem: "img/pudim-doce-leite.svg" },
-  { nome: "Pudim Tradicional", preco: 7.9, peso: "120g", imagem: "img/pudim-tradicional.svg" },
-  { nome: "Chocolate Branco c/ Calda de Caramelo", preco: 9.5, peso: "120g", imagem: "img/pudim-chocobranco-caramelo.svg" },
-  { nome: "Chocolate Branco c/ Calda de Morango", preco: 10.6, peso: "120g", imagem: "img/pudim-chocobranco-morango.svg" },
-  { nome: "Pudim de Coco", preco: 9.3, peso: "120g", imagem: "img/pudim-coco.svg" },
-  { nome: "Pudim de Leite Ninho", preco: 9.1, peso: "120g", imagem: "img/pudim-ninho.svg" },
-  { nome: "Chocolate ao Leite c/ Calda de Maracujá", preco: 9.9, peso: "120g", imagem: "img/pudim-chocolate-maracuja.svg" },
-  { nome: "Chocolate ao Leite c/ Calda de Caramelo", preco: 9.9, peso: "120g", imagem: "img/pudim-chocolate-caramelo.svg" },
-  { nome: "Pudim de Abacaxi", preco: 8.9, peso: "120g", imagem: "img/pudim-abacaxi.svg" }
+  { nome: "Pudim Tradicional", preco: 7.9, peso: "120g", imagem: "img/pudim-tradicional.jpg" },
+  { nome: "Pudim de Coco", preco: 9.3, peso: "120g", imagem: "img/pudim-coco.jpg" },
+  { nome: "Pudim de Maracujá", preco: 9.9, peso: "120g", imagem: "img/pudim-maracuja.jpg" },
+  { nome: "Pudim de Morango", preco: 10.6, peso: "120g", imagem: "img/pudim-morango.jpg" },
+  { nome: "Pudim de Paçoca", preco: 8.9, peso: "120g", imagem: "img/pudim-pacoca.jpg" }
 ];
 
 const carrinho = [];

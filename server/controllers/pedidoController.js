@@ -23,16 +23,11 @@ import { sanitizeInput } from "../utils/sanitize.js";
 import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
 
 const PRECOS_PRODUTOS = {
-  "Pudim de Café": 8.6,
-  "Pudim de Doce de Leite": 8.9,
   "Pudim Tradicional": 7.9,
-  "Chocolate Branco c/ Calda de Caramelo": 9.5,
-  "Chocolate Branco c/ Calda de Morango": 10.6,
   "Pudim de Coco": 9.3,
-  "Pudim de Leite Ninho": 9.1,
-  "Chocolate ao Leite c/ Calda de Maracujá": 9.9,
-  "Chocolate ao Leite c/ Calda de Caramelo": 9.9,
-  "Pudim de Abacaxi": 8.9
+  "Pudim de Maracujá": 9.9,
+  "Pudim de Morango": 10.6,
+  "Pudim de Paçoca": 8.9
 };
 
 
