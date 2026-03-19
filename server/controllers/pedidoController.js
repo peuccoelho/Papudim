@@ -20,7 +20,8 @@ export async function deletarPedido(req, res) {
 import fetch from "node-fetch";
 import axios from "axios";
 import { sanitizeInput } from "../utils/sanitize.js";
-import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
+// ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
+// import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
 
 const PRECOS_PRODUTOS = {
   "Pudim Tradicional": 7.9,
@@ -33,7 +34,9 @@ const PRECOS_PRODUTOS = {
 
 export async function criarPedido(req, res) {
   console.log("Recebido pedido:", req.body); 
-  const { pedidosCollection, ASAAS_API, ASAAS_ACCESS_TOKEN } = req.app.locals;
+  const { pedidosCollection } = req.app.locals;
+  // ASAAS DESATIVADO
+  // const { pedidosCollection, ASAAS_API, ASAAS_ACCESS_TOKEN } = req.app.locals;
   const pedido = req.body;
 
   // validação 
@@ -41,7 +44,6 @@ export async function criarPedido(req, res) {
     !pedido.cliente ||
     !pedido.email ||
     !pedido.celular ||
-    !pedido.pagamento ||
     !Array.isArray(pedido.itens) ||
     pedido.itens.length === 0
   ) {
@@ -90,7 +92,7 @@ export async function criarPedido(req, res) {
   
   const pedidoId = pedido.id || `pedido-${Date.now()}`;
   pedido.id = pedidoId;
-  pedido.status = "pendente";
+  pedido.status = "aguardando_contato";
   pedido.itens = itensSanitizados;
   pedido.total = totalCalculado;
   pedido.criadoEm = new Date().toISOString();
@@ -101,33 +103,47 @@ export async function criarPedido(req, res) {
   console.log("Pedido salvo no Firebase com sucesso");
 
 
-  const { cliente, email, celular, total, pagamento, parcelas } = pedido;
+  const { cliente, email, celular, total } = pedido;
+  // ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
+  // const { cliente, email, celular, total, pagamento, parcelas } = pedido;
 
   try {
-    // cliente Asaas
-    const clienteData = await criarClienteAsaas(
-      ASAAS_API,
-      ASAAS_ACCESS_TOKEN,
-      cliente,
-      email,
-      celular
-    );
+    // ASAAS DESATIVADO - Agora retornamos dados para gerar link WhatsApp no frontend
+    // // cliente Asaas
+    // const clienteData = await criarClienteAsaas(
+    //   ASAAS_API,
+    //   ASAAS_ACCESS_TOKEN,
+    //   cliente,
+    //   email,
+    //   celular
+    // );
 
-    // cobrança Asaas
-    const cobranca = await criarCobrancaAsaas(
-      ASAAS_API,
-      ASAAS_ACCESS_TOKEN,
-      clienteData.id,
-      pagamento,
-      total,
-      pedidoId,
-      clienteData.name,
-      pedido.parcelas 
-    );
+    // // cobrança Asaas
+    // const cobranca = await criarCobrancaAsaas(
+    //   ASAAS_API,
+    //   ASAAS_ACCESS_TOKEN,
+    //   clienteData.id,
+    //   pagamento,
+    //   total,
+    //   pedidoId,
+    //   clienteData.name,
+    //   pedido.parcelas 
+    // );
 
+    // res.json({
+    //   url: cobranca.invoiceUrl,
+    //   pedidoId: pedidoId
+    // });
+
+    // Retorna dados do pedido para o frontend gerar link WhatsApp
     res.json({
-      url: cobranca.invoiceUrl,
-      pedidoId: pedidoId
+      sucesso: true,
+      pedidoId: pedidoId,
+      cliente: cliente,
+      email: email,
+      celular: celular,
+      total: total,
+      itens: itensSanitizados
     });
 
   } catch (error) {
@@ -286,7 +302,7 @@ export async function atualizarStatusPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
   console.log("Body recebido para atualizar status:", req.body); 
   const { id, status } = req.body;
-  const statusValidos = ["a fazer", "em produção", "pronto", "pendente", "pago"];
+  const statusValidos = ["a fazer", "em produção", "pronto", "pendente", "pago", "aguardando_contato"];
 
   if (!statusValidos.includes(status)) {
     return res.status(400).json({ erro: "Status inválido." });

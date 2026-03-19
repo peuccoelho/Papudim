@@ -14,13 +14,15 @@ const carrinhoContainer = document.getElementById("carrinho");
 const nomeClienteInput = document.getElementById("nomeCliente");
 const emailClienteInput = document.getElementById("emailCliente");
 const celularClienteInput = document.getElementById("celularCliente");
-const formaPagamentoInput = document.getElementById("formaPagamento");
+// ASAAS DESATIVADO - forma de pagamento não é mais necessária
+// const formaPagamentoInput = document.getElementById("formaPagamento");
 const btnFinalizar = document.getElementById("finalizarPedido");
 const toggleInfo = document.getElementById("toggleInfo");
 const infoSection = document.getElementById("infoSection");
 const statusDiv = document.getElementById("status");
 const barraProgresso = document.getElementById("barraProgresso");
-const selectParcelas = document.getElementById("parcelas");
+// ASAAS DESATIVADO
+// const selectParcelas = document.getElementById("parcelas");
 const modalResumo = document.getElementById("modalResumo");
 const resumoConteudo = document.getElementById("resumoConteudo");
 const btnCancelarResumo = document.getElementById("btnCancelarResumo");
@@ -144,11 +146,12 @@ function atualizarCarrinho() {
   }
 
   const nomePreenchido = nomeClienteInput.value.trim() !== "";
-  const pagamentoEscolhido = formaPagamentoInput.value !== "";
+  const emailPreenchido = emailClienteInput.value.trim() !== "";
+  // ASAAS DESATIVADO
   const progresso =
     (carrinho.length > 0 ? 33 : 0) +
     (nomePreenchido ? 33 : 0) +
-    (pagamentoEscolhido ? 34 : 0);
+    (emailPreenchido ? 34 : 0);
   if (barraProgresso) barraProgresso.style.width = `${progresso}%`;
 }
 
@@ -167,11 +170,12 @@ btnFinalizar.addEventListener("click", async (e) => {
   const nome = nomeClienteInput.value.trim();
   const email = emailClienteInput.value.trim();
   const celular = celularClienteInput.value.trim();
-  const pagamento = formaPagamentoInput.value;
-  const parcelas = parseInt(document.getElementById("parcelas")?.value || "1");
+  // ASAAS DESATIVADO - não precisa mais de forma de pagamento
+  // const pagamento = formaPagamentoInput.value;
+  // const parcelas = parseInt(document.getElementById("parcelas")?.value || "1");
   const totalUnidades = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
 
-  if (!nome || !email || !celular || !pagamento) {
+  if (!nome || !email || !celular) {
     exibirToast("Preencha todos os campos antes de finalizar o pedido.");
     return;
   }
@@ -196,15 +200,16 @@ btnFinalizar.addEventListener("click", async (e) => {
     cliente: nome,
     email,
     celular: celular.replace(/\D/g, ""),
-    pagamento,
     itens: carrinho.map(item => ({
       nome: item.nome,
       preco: item.preco,
       peso: item.peso,
       quantidade: item.quantidade
     })),
-    total,
-    parcelas: pagamento === "CREDIT_CARD" ? parcelas : undefined
+    total
+    // ASAAS DESATIVADO
+    // pagamento,
+    // parcelas: pagamento === "CREDIT_CARD" ? parcelas : undefined
   };
 
   
@@ -216,22 +221,23 @@ btnFinalizar.addEventListener("click", async (e) => {
   html += `<div class="mb-1"><b>Nome:</b> ${escapeHTML(nome)}</div>`;
   html += `<div class="mb-1"><b>E-mail:</b> ${escapeHTML(email)}</div>`;
   html += `<div class="mb-1"><b>Celular:</b> ${escapeHTML(celular)}</div>`;
-  html += `<div class="mb-1"><b>Pagamento:</b> `;
-
-  if (pagamento === "PIX") {
-    html += "PIX";
-  } else if (pagamento === "CREDIT_CARD") {
-    html += "Cartão de Crédito";
-    if (parcelas > 1) {
-      html += ` (${parcelas}x)`;
-    }
-  } else {
-    html += escapeHTML(pagamento);
-  }
-  html += `</div>`;
+  // ASAAS DESATIVADO - removido informação de pagamento
+  // html += `<div class="mb-1"><b>Pagamento:</b> `;
+  // if (pagamento === "PIX") {
+  //   html += "PIX";
+  // } else if (pagamento === "CREDIT_CARD") {
+  //   html += "Cartão de Crédito";
+  //   if (parcelas > 1) {
+  //     html += ` (${parcelas}x)`;
+  //   }
+  // } else {
+  //   html += escapeHTML(pagamento);
+  // }
+  // html += `</div>`;
 
 
   html += `<div class="mt-2 text-lg font-bold">Total: R$ ${total.toFixed(2).replace(".", ",")}</div>`;
+  html += `<div class="mt-2 text-sm text-gray-600">Ao confirmar, você será redirecionado ao WhatsApp para finalizar o pedido.</div>`;
 
   resumoConteudo.innerHTML = html;
   modalResumo.classList.remove("hidden");
@@ -244,37 +250,64 @@ btnCancelarResumo.addEventListener("click", () => {
 
 
 btnConfirmarResumo.addEventListener("click", async () => {
-  if (
-    pedidoParaEnviar.pagamento === "PIX" ||
-    pedidoParaEnviar.pagamento === "CREDIT_CARD"
-  ) {
-    try {
-      modalResumo.classList.add("hidden");
-      mostrarLoader();
+  try {
+    modalResumo.classList.add("hidden");
+    mostrarLoader();
 
-      const res = await fetch("https://homepudimback.onrender.com/api/pagar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pedidoParaEnviar),
-      });
+    const res = await fetch("https://homepudimback.onrender.com/api/pagar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pedidoParaEnviar),
+    });
 
-      if (res.ok) {
-        const data = await res.json();
-      
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          alert("Erro ao gerar link de pagamento.");
-        }
+    if (res.ok) {
+      const data = await res.json();
+    
+      if (data.sucesso) {
+        // Gera mensagem personalizada para WhatsApp
+        const itensTexto = data.itens
+          .map(i => `- ${i.nome} x${i.quantidade} - R$ ${(i.preco * i.quantidade).toFixed(2).replace(".", ",")}`)
+          .join("\n");
+        
+        const mensagem = `🍮 *Novo Pedido - Papudim*
+
+*Cliente:* ${data.cliente}
+*E-mail:* ${data.email}
+*Celular:* ${data.celular}
+
+*Itens:*
+${itensTexto}
+
+*Total:* R$ ${Number(data.total).toFixed(2).replace(".", ",")}
+
+Aguardo confirmação para finalizar o pedido! 😊`;
+
+        // Número do WhatsApp do estabelecimento
+        const numeroWhatsApp = "5571986961217";
+        const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+        
+        // Abre WhatsApp
+        window.open(urlWhatsApp, "_blank");
+        
+        // Limpa o carrinho
+        carrinho.length = 0;
+        atualizarCarrinho();
+        nomeClienteInput.value = "";
+        emailClienteInput.value = "";
+        celularClienteInput.value = "";
+        
+        exibirToast("Pedido enviado! Complete pelo WhatsApp.");
       } else {
-        const erro = await res.json();
-        alert(erro.erro || "Erro ao processar pedido.");
+        alert("Erro ao processar pedido.");
       }
-    } catch (e) {
-      alert("Erro ao processar pedido.");
-    } finally {
-      esconderLoader();
+    } else {
+      const erro = await res.json();
+      alert(erro.erro || "Erro ao processar pedido.");
     }
+  } catch (e) {
+    alert("Erro ao processar pedido.");
+  } finally {
+    esconderLoader();
   }
 });
 
@@ -337,54 +370,65 @@ function validarFormulario() {
   const nome = nomeClienteInput.value.trim();
   const email = emailClienteInput.value.trim();
   const celular = celularClienteInput.value.trim();
-  const pagamento = formaPagamentoInput.value;
+  // ASAAS DESATIVADO
+  // const pagamento = formaPagamentoInput.value;
   const totalUnidades = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
 
   btnFinalizar.disabled =
     !nome ||
     !email ||
     !celular ||
-    !pagamento ||
     carrinho.length === 0;
 }
 
 // atualiza validação e barra de progresso ao digitar nos campos
-[nomeClienteInput, emailClienteInput, celularClienteInput, formaPagamentoInput].forEach(input => {
+[nomeClienteInput, emailClienteInput, celularClienteInput].forEach(input => {
   if (input) {
     input.addEventListener("input", () => {
       validarFormulario();
       atualizarBarraProgresso();
     });
-    
-    if (input.tagName === "SELECT") {
-      input.addEventListener("change", () => {
-        validarFormulario();
-        atualizarBarraProgresso();
-        
-        // Mostrar/esconder opções baseado na forma de pagamento
-        if (input.id === "formaPagamento") {
-          const selectParcelas = document.getElementById("parcelas");
-          
-          // Mostrar parcelas apenas para cartão de crédito
-          if (input.value === "CREDIT_CARD") {
-            selectParcelas.style.display = "block";
-          } else {
-            selectParcelas.style.display = "none";
-          }
-        }
-      });
-    }
   }
 });
+
+// ASAAS DESATIVADO - removido listener de formaPagamentoInput
+// [nomeClienteInput, emailClienteInput, celularClienteInput, formaPagamentoInput].forEach(input => {
+//   if (input) {
+//     input.addEventListener("input", () => {
+//       validarFormulario();
+//       atualizarBarraProgresso();
+//     });
+    
+//     if (input.tagName === "SELECT") {
+//       input.addEventListener("change", () => {
+//         validarFormulario();
+//         atualizarBarraProgresso();
+        
+//         // Mostrar/esconder opções baseado na forma de pagamento
+//         if (input.id === "formaPagamento") {
+//           const selectParcelas = document.getElementById("parcelas");
+          
+//           // Mostrar parcelas apenas para cartão de crédito
+//           if (input.value === "CREDIT_CARD") {
+//             selectParcelas.style.display = "block";
+//           } else {
+//             selectParcelas.style.display = "none";
+//           }
+//         }
+//       });
+//     }
+//   }
+// });
 
 
 function atualizarBarraProgresso() {
   const nomePreenchido = nomeClienteInput.value.trim() !== "";
-  const pagamentoEscolhido = formaPagamentoInput.value !== "";
+  const emailPreenchido = emailClienteInput.value.trim() !== "";
+  // ASAAS DESATIVADO - barra atualizada para não depender de pagamento
   const progresso =
     (carrinho.length > 0 ? 33 : 0) +
     (nomePreenchido ? 33 : 0) +
-    (pagamentoEscolhido ? 34 : 0);
+    (emailPreenchido ? 34 : 0);
   if (barraProgresso) barraProgresso.style.width = `${progresso}%`;
 }
 

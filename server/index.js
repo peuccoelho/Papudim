@@ -26,10 +26,12 @@ if (process.env.KEEP_AWAKE !== "false") {
 // rotas
 import pedidoRoutes from "./routes/pedidoRoutes.js";
 import { loginLimiter, pedidoLimiter, globalLimiter, adminLimiter } from "./middlewares/rateLimit.js";
-import { configurarWebhookAsaas } from "./services/asaasService.js";
+// ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
+// import { configurarWebhookAsaas } from "./services/asaasService.js";
 
 dotenv.config();
-console.log("Token carregado:", process.env.ASAAS_ACCESS_TOKEN?.slice(0, 10) + "...");
+// ASAAS DESATIVADO
+// console.log("Token carregado:", process.env.ASAAS_ACCESS_TOKEN?.slice(0, 10) + "...");
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG_JSON);
 
@@ -49,11 +51,10 @@ const PORT = 3000;
 const SECRET_KEY = process.env.JWT_SECRET;
 const DB_FILE = path.join(__dirname, "pedidos.json");
 
-const ASAAS_ACCESS_TOKEN = process.env.ASAAS_ACCESS_TOKEN;
-const ASAAS_API = "https://api-sandbox.asaas.com/";
-
-// webhook do Asaas na inicialização
-configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN);
+// ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
+// const ASAAS_ACCESS_TOKEN = process.env.ASAAS_ACCESS_TOKEN;
+// const ASAAS_API = "https://api-sandbox.asaas.com/";
+// configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN);
 
 app.use(cors({
   origin: ["https://papudim.netlify.app", "http://localhost:5173"],
@@ -100,8 +101,9 @@ app.post("/api/login", loginLimiter, (req, res) => {
 });
 
 app.locals.pedidosCollection = pedidosCollection;
-app.locals.ASAAS_API = ASAAS_API;
-app.locals.ASAAS_ACCESS_TOKEN = ASAAS_ACCESS_TOKEN;
+// ASAAS DESATIVADO
+// app.locals.ASAAS_API = ASAAS_API;
+// app.locals.ASAAS_ACCESS_TOKEN = ASAAS_ACCESS_TOKEN;
 
 app.use("/api", pedidoRoutes);
 

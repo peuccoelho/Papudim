@@ -148,6 +148,7 @@
             placeholder="Seu celular (apenas números)"
             class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
           />
+          <!-- ASAAS DESATIVADO - Opções de pagamento removidas temporariamente
           <select
             id="formaPagamento"
             class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
@@ -168,14 +169,18 @@
             <option value="5">5x</option>
             <option value="6">6x</option>
           </select>
+          -->
 
           <button
             id="finalizarPedido"
             disabled
             class="w-full bg-[#a47551] hover:bg-[#916546] text-white px-4 py-3 rounded-xl transition text-base font-semibold shadow"
           >
-            Finalizar Pedido
+            Enviar Pedido via WhatsApp
           </button>
+          <p class="text-xs text-gray-500 text-center mt-2">
+            Ao enviar, você será redirecionado ao WhatsApp para combinar o pagamento.
+          </p>
         </div>
       </aside>
 
@@ -236,7 +241,7 @@
             id="btnConfirmarResumo"
             class="bg-[#a47551] hover:bg-[#916546] text-white px-4 py-2 rounded-xl font-semibold transition"
           >
-            Confirmar e Pagar
+            Confirmar e Enviar
           </button>
         </div>
       </div>
