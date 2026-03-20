@@ -13,7 +13,7 @@
     <style>
       body {
         font-family: "Quicksand", sans-serif;
-        background: linear-gradient(135deg, #f8e7d1 0%, #f8e7d1 100%);
+        background: linear-gradient(135deg, #fdf6e3 0%, #f8e7d1 100%);
         color: #3e2c23;
       }
       .animate-fade-in {
@@ -44,6 +44,7 @@
           transform: none;
         }
       }
+      
       button,
       .btn,
       a,
@@ -66,90 +67,172 @@
         outline: 2px solid #a47551;
         outline-offset: 2px;
       }
+
+      /* ===== TESTIMONIALS ===== */
+      .testimonial-quote {
+        position: absolute;
+        inset: 0;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .testimonial-quote.active {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+      .testimonial-quote.inactive {
+        opacity: 0;
+        transform: translateY(8px);
+        filter: blur(4px);
+        pointer-events: none;
+      }
+
+      .testimonial-avatar {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+      }
+      .testimonial-avatar.active {
+        transform: scale(1.15);
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(164, 117, 81, 0.3);
+      }
+      .testimonial-avatar.inactive {
+        filter: grayscale(60%);
+        opacity: 0.7;
+      }
+      .testimonial-avatar.inactive:hover {
+        filter: grayscale(0%);
+        opacity: 1;
+        transform: scale(1.05);
+      }
+
+      .testimonial-info {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .testimonial-info.active {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .testimonial-info.inactive {
+        opacity: 0;
+        transform: translateX(-8px);
+        pointer-events: none;
+      }
     </style>
   </head>
-  <body class="page-fade min-h-screen flex flex-col">
-    <header
-      class="w-full py-6 sm:py-8 flex flex-col items-center animate-fade-in"
-    >
+  <body class="page-fade min-h-screen flex flex-col justify-center">
+    <header class="w-full py-3 sm:py-6 flex flex-col items-center animate-fade-in px-4">
       <img
         src="papudimlogo.png"
         alt="Logo Papudim"
-        class="w-20 h-20 sm:w-24 sm:h-24 rounded-full shadow-lg border-4 border-[#e2cdb0] mb-3 sm:mb-4"
+        class="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-lg border-4 border-[#e2cdb0] mb-2 sm:mb-3"
       />
-      <h1
-        class="text-3xl sm:text-5xl font-bold text-[#a47551] drop-shadow mb-1 sm:mb-2 tracking-tight"
-      >
-        Papudim
+      <h1 class="text-2xl sm:text-4xl font-bold text-[#a47551] drop-shadow mb-1 tracking-tight text-center">
+        🍮 Papudim
       </h1>
-      <p class="text-base sm:text-lg text-gray-600 mb-1 sm:mb-2">
-        Pudins artesanais feitos com carinho e sabor!
+      <p class="text-sm sm:text-base text-gray-600 mb-1 text-center">
+        Pudins artesanais feitos com carinho!
       </p>
-      <span
-        class="inline-block bg-[#e2cdb0] text-[#a47551] px-3 py-1 sm:px-4 rounded-full text-xs sm:text-sm font-semibold shadow mt-1 sm:mt-2"
-      >
+      <span class="inline-block bg-[#e2cdb0] text-[#a47551] px-3 py-1 rounded-full text-xs font-semibold shadow mt-1">
         Pedidos por encomenda
       </span>
     </header>
 
-    <main class="flex-1 flex flex-col items-center justify-center px-2 sm:px-4">
-      <section
-        class="w-full max-w-md sm:max-w-xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 flex flex-col items-center gap-4 sm:gap-6 animate-fade-in"
-        style="background: linear-gradient(135deg, #f8e7d1 0%, #f8e7d1 100%)"
-      >
-        <h2
-          class="text-xl sm:text-2xl font-semibold text-[#a47551] mb-1 sm:mb-2"
-        >
+    <main class="flex flex-col items-center justify-center px-4 sm:px-6">
+      <!-- Hero Section -->
+      <section class="w-full max-w-md sm:max-w-lg rounded-2xl p-3 sm:p-6 flex flex-col items-center gap-2 sm:gap-4 animate-fade-in">
+        <h2 class="text-lg sm:text-xl font-semibold text-[#a47551] text-center">
           Faça seu pedido online
         </h2>
-        <p class="text-sm sm:text-base text-gray-700 text-center">
-          Escolha entre nossos sabores exclusivos.<br class="hidden sm:block" />
+        <p class="text-sm text-gray-600 text-center">
+          Escolha entre nossos sabores exclusivos
         </p>
         <a
           href="cardapio.html"
-          class="bg-[#a47551] hover:bg-[#916546] text-white px-4 sm:px-8 py-2.5 sm:py-4 rounded-full text-base sm:text-lg font-bold shadow-lg transition-all duration-200 flex items-center gap-2 mt-1 sm:mt-2 w-full sm:w-auto justify-center"
+          class="bg-[#a47551] hover:bg-[#916546] text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-bold shadow-lg transition-all duration-200 flex items-center gap-2 w-full sm:w-auto justify-center"
         >
-          <svg
-            class="w-5 h-5 sm:w-6 sm:h-6"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M9 5l7 7-7 7"
-            />
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
           Ver Cardápio
         </a>
+      </section>
 
-        <div
-          class="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full justify-center mt-2 sm:mt-4 rounded-xl p-4"
-          style="background: linear-gradient(135deg, #f8e7d1 0%, #f8e7d1 100%)"
-        >
+      <!-- Testimonials Section -->
+      <section class="w-full max-w-md sm:max-w-lg mt-4 sm:mt-8 animate-fade-in" style="animation-delay: 0.2s;">
+        <div class="rounded-2xl p-4 sm:p-6">
+          <!-- Quote -->
+          <div class="relative min-h-[60px] sm:min-h-[80px] mb-4 sm:mb-6">
+            <p id="quote-0" class="testimonial-quote active text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic">
+              "O pudim mais gostoso que já comi! Textura perfeita e sabor incrível. Virei cliente fiel!"
+            </p>
+            <p id="quote-1" class="testimonial-quote inactive text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic">
+              "Encomendei para o aniversário da minha mãe e foi um sucesso! Todos amaram, já quero mais."
+            </p>
+            <p id="quote-2" class="testimonial-quote inactive text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic">
+              "Qualidade artesanal de verdade! Dá pra sentir o carinho em cada pedaço. Super recomendo!"
+            </p>
+          </div>
+
+          <!-- Author Row -->
+          <div class="flex items-center gap-3 sm:gap-4">
+            <!-- Avatars -->
+            <div class="flex -space-x-2">
+              <button id="avatar-0" onclick="setActiveTestimonial(0)" class="testimonial-avatar active w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-white bg-[#e2cdb0] flex items-center justify-center text-[#a47551] font-bold text-sm">
+                AM
+              </button>
+              <button id="avatar-1" onclick="setActiveTestimonial(1)" class="testimonial-avatar inactive w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-white bg-[#d4a574] flex items-center justify-center text-white font-bold text-sm">
+                CS
+              </button>
+              <button id="avatar-2" onclick="setActiveTestimonial(2)" class="testimonial-avatar inactive w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-white bg-[#a47551] flex items-center justify-center text-white font-bold text-sm">
+                RF
+              </button>
+            </div>
+
+            <!-- Divider -->
+            <div class="h-8 w-px bg-[#e2cdb0]"></div>
+
+            <!-- Active Author Info -->
+            <div class="relative flex-1 min-h-[36px]">
+              <div id="info-0" class="testimonial-info active">
+                <span class="text-sm font-semibold text-[#3e2c23]">Ana Martins</span>
+                <span class="text-xs text-gray-500">via Instagram</span>
+              </div>
+              <div id="info-1" class="testimonial-info inactive">
+                <span class="text-sm font-semibold text-[#3e2c23]">Carlos Silva</span>
+                <span class="text-xs text-gray-500">via Instagram</span>
+              </div>
+              <div id="info-2" class="testimonial-info inactive">
+                <span class="text-sm font-semibold text-[#3e2c23]">Renata Ferreira</span>
+                <span class="text-xs text-gray-500">via Instagram</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Social Buttons -->
+      <section class="w-full max-w-md sm:max-w-lg mt-10 sm:mt-6 animate-fade-in" style="animation-delay: 0.3s;">
+        <div class="flex flex-row gap-2 sm:gap-3 w-full justify-center px-2">
           <a
             href="https://wa.me/5571986961217?text=Olá! Gostaria de saber mais sobre os pudins."
             target="_blank"
-            class="flex-1 bg-[#e2cdb0] hover:bg-[#d1b07a] text-[#a47551] px-4 sm:px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow transition text-sm sm:text-base font-semibold"
+            class="flex-1 bg-[#e2cdb0] hover:bg-[#d1b07a] text-[#a47551] px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 shadow transition text-sm font-semibold"
           >
-            <img
-              src="https://img.icons8.com/ios-filled/24/a47551/whatsapp.png"
-              alt="WhatsApp"
-              class="w-5 h-5"
-            />
-            Fale no WhatsApp
+            <img src="https://img.icons8.com/ios-filled/24/a47551/whatsapp.png" alt="WhatsApp" class="w-4 h-4" />
+            WhatsApp
           </a>
           <a
             href="https://www.instagram.com/papudim_oficial/"
             target="_blank"
-            class="flex-1 bg-[#e2cdb0] hover:bg-[#d1b07a] text-[#a47551] px-4 sm:px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow transition text-sm sm:text-base font-semibold"
+            class="flex-1 bg-[#e2cdb0] hover:bg-[#d1b07a] text-[#a47551] px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 shadow transition text-sm font-semibold"
           >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zm4.25 3.25a5.25 5.25 0 1 1 0 10.5 5.25 5.25 0 0 1 0-10.5zm0 1.5a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5zm5.25.75a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"
-              />
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zm4.25 3.25a5.25 5.25 0 1 1 0 10.5 5.25 5.25 0 0 1 0-10.5zm0 1.5a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5zm5.25.75a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
             </svg>
             Instagram
           </a>
@@ -157,10 +240,41 @@
       </section>
     </main>
 
-    <footer
-      class="mt-8 sm:mt-12 mb-4 text-center text-gray-500 text-xs sm:text-sm px-2"
-    >
-      &copy; 2025 Papudim.
+    <footer class="w-full py-3 sm:py-4 text-center text-gray-400 text-xs">
+      &copy; 2025 Papudim. Feito com 🍮
     </footer>
+
+    <script>
+      let activeTestimonial = 0;
+      const totalTestimonials = 3;
+
+      function setActiveTestimonial(index) {
+        // Remove active from all
+        for (let i = 0; i < totalTestimonials; i++) {
+          document.getElementById(`quote-${i}`).classList.remove('active');
+          document.getElementById(`quote-${i}`).classList.add('inactive');
+          document.getElementById(`avatar-${i}`).classList.remove('active');
+          document.getElementById(`avatar-${i}`).classList.add('inactive');
+          document.getElementById(`info-${i}`).classList.remove('active');
+          document.getElementById(`info-${i}`).classList.add('inactive');
+        }
+        
+        // Add active to selected
+        document.getElementById(`quote-${index}`).classList.remove('inactive');
+        document.getElementById(`quote-${index}`).classList.add('active');
+        document.getElementById(`avatar-${index}`).classList.remove('inactive');
+        document.getElementById(`avatar-${index}`).classList.add('active');
+        document.getElementById(`info-${index}`).classList.remove('inactive');
+        document.getElementById(`info-${index}`).classList.add('active');
+        
+        activeTestimonial = index;
+      }
+
+      // Auto-rotate testimonials every 5 seconds
+      setInterval(() => {
+        const next = (activeTestimonial + 1) % totalTestimonials;
+        setActiveTestimonial(next);
+      }, 5000);
+    </script>
   </body>
 </html>

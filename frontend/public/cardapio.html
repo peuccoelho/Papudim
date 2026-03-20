@@ -31,12 +31,488 @@
         }
       }
 
-      @media (max-width: 1024px) {
-        .carrinho-aside {
-          margin-bottom: 2rem;
+      /* Animações do carrinho */
+      @keyframes cartItemIn {
+        from {
+          opacity: 0;
+          transform: scale(0.96) translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+      @keyframes cartItemOut {
+        from {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: scale(0.96) translateY(-8px);
+        }
+      }
+      .cart-item-enter {
+        animation: cartItemIn 0.25s ease forwards;
+      }
+      .cart-item-exit {
+        animation: cartItemOut 0.2s ease forwards;
+      }
+
+      /* Number flow animation */
+      .number-flow {
+        display: inline-block;
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .number-flow.updating {
+        transform: translateY(-2px);
+      }
+
+      /* Hover effects para botões do carrinho */
+      .cart-btn {
+        transition: all 0.15s ease;
+      }
+      .cart-btn:hover {
+        transform: scale(1.1);
+        background-color: #e2cdb0;
+      }
+      .cart-btn:active {
+        transform: scale(0.95);
+      }
+
+      /* Botão remover */
+      .cart-remove-btn {
+        opacity: 0.6;
+        transition: all 0.15s ease;
+      }
+      .cart-remove-btn:hover {
+        opacity: 1;
+        transform: scale(1.1);
+        color: #dc2626;
+      }
+
+      /* Carrinho container */
+      .carrinho-aside {
+        display: flex;
+        flex-direction: column;
+      }
+      .cart-items-container {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+      .cart-footer {
+        border-top: 1px solid #e2cdb0;
+        background: white;
+        margin-top: auto;
+      }
+
+      /* Pulse animation para contador */
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+      }
+      .cart-count-pulse {
+        animation: pulse 0.3s ease;
+      }
+
+      /* ===== PRODUCT CARDS - E-commerce Style ===== */
+      .product-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e2cdb0;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(164, 117, 81, 0.08);
+      }
+      .product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(164, 117, 81, 0.15);
+        border-color: #a47551;
+      }
+      .product-card:active {
+        transform: translateY(-1px);
+      }
+      
+      .product-card-image {
+        position: relative;
+        width: 100%;
+        padding-top: 85%; /* Proporção mais compacta */
+        background: linear-gradient(135deg, #fdf6e3 0%, #f8e7d1 100%);
+        overflow: hidden;
+      }
+      .product-card-image img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+      }
+      .product-card:hover .product-card-image img {
+        transform: scale(1.05);
+      }
+      
+      .product-card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        padding: 0.625rem;
+      }
+      
+      .product-card-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #3e2c23;
+        line-height: 1.25;
+        min-height: 2em;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 0.25rem;
+      }
+      
+      .product-card-meta {
+        font-size: 0.65rem;
+        color: #9ca3af;
+        margin-bottom: 0.25rem;
+      }
+      
+      .product-card-price {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #a47551;
+        margin-bottom: 0.5rem;
+      }
+      
+      .product-card-actions {
+        display: flex;
+        gap: 0.375rem;
+        margin-top: auto;
+      }
+      
+      .product-qty-input {
+        width: 2.25rem;
+        text-align: center;
+        border: 1px solid #e2cdb0;
+        border-radius: 0.375rem;
+        padding: 0.375rem 0.125rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #3e2c23;
+        background: #fdf6e3;
+        transition: all 0.2s ease;
+      }
+      .product-qty-input:focus {
+        outline: none;
+        border-color: #a47551;
+        box-shadow: 0 0 0 2px rgba(164, 117, 81, 0.15);
+      }
+      
+      .product-add-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        background: #a47551;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.375rem 0.5rem;
+        border-radius: 0.375rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .product-add-btn:hover {
+        background: #916546;
+      }
+      .product-add-btn:active {
+        transform: scale(0.97);
+      }
+      .product-add-btn svg {
+        width: 0.875rem;
+        height: 0.875rem;
+      }
+
+      /* Grid responsivo para cards */
+      .products-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.625rem;
+      }
+      
+      @media (min-width: 640px) {
+        .products-grid {
+          gap: 1rem;
+        }
+        .product-card {
+          border-radius: 1rem;
+        }
+        .product-card-image {
+          padding-top: 90%;
+        }
+        .product-card-body {
+          padding: 0.875rem;
+        }
+        .product-card-title {
+          font-size: 0.95rem;
+          min-height: 2.4em;
+        }
+        .product-card-meta {
+          font-size: 0.75rem;
+        }
+        .product-card-price {
+          font-size: 1.1rem;
+        }
+        .product-qty-input {
+          width: 2.75rem;
+          padding: 0.5rem 0.25rem;
+          font-size: 0.8rem;
+        }
+        .product-add-btn {
+          font-size: 0.8rem;
+          padding: 0.5rem 0.75rem;
+          gap: 0.375rem;
+        }
+        .product-add-btn svg {
+          width: 1rem;
+          height: 1rem;
+        }
+      }
+      
+      @media (min-width: 768px) {
+        .products-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.25rem;
+        }
+      }
+      
+      @media (min-width: 1024px) {
+        .products-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1.5rem;
+        }
+        .product-card-image {
+          padding-top: 100%;
+        }
+        .product-card-body {
+          padding: 1rem;
+        }
+        .product-card-title {
+          font-size: 1.05rem;
+        }
+        .product-card-price {
+          font-size: 1.2rem;
+        }
+        .product-add-btn {
+          font-size: 0.875rem;
+          padding: 0.625rem 1rem;
         }
       }
 
+      /* ===== MOBILE SIDEBAR CART ===== */
+      
+      /* FAB (Floating Action Button) do carrinho */
+      .cart-fab {
+        position: fixed;
+        bottom: 5rem;
+        right: 1rem;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #a47551 0%, #916546 100%);
+        box-shadow: 0 4px 15px rgba(164, 117, 81, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 40;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer;
+        border: none;
+      }
+      .cart-fab:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(164, 117, 81, 0.5);
+      }
+      .cart-fab:active {
+        transform: scale(0.95);
+      }
+      .cart-fab svg {
+        width: 22px;
+        height: 22px;
+        color: white;
+      }
+      .cart-fab-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        min-width: 20px;
+        height: 20px;
+        background: #dc2626;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+        transition: all 0.3s ease;
+      }
+      .cart-fab-badge:empty,
+      .cart-fab-badge[data-count="0"] {
+        transform: scale(0);
+        opacity: 0;
+      }
+      
+      /* Overlay backdrop */
+      .cart-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        z-index: 45;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+      .cart-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      /* Bottom Sheet Cart (estilo moderno) */
+      .cart-sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 85vh;
+        background: white;
+        z-index: 50;
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        display: flex;
+        flex-direction: column;
+        border-radius: 1.5rem 1.5rem 0 0;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
+      }
+      .cart-sidebar.active {
+        transform: translateY(0);
+      }
+      
+      /* Handle bar (arrastar) */
+      .cart-sidebar::before {
+        content: '';
+        position: absolute;
+        top: 0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 4px;
+        background: #d1d5db;
+        border-radius: 2px;
+      }
+      
+      .cart-sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1rem 0.75rem;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .cart-sidebar-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+      }
+      .cart-sidebar-close:hover {
+        background: #e5e7eb;
+      }
+      .cart-sidebar-close:active {
+        transform: scale(0.95);
+      }
+      .cart-sidebar-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.75rem 1rem;
+        max-height: 35vh;
+        -webkit-overflow-scrolling: touch;
+      }
+      .cart-sidebar-footer {
+        padding: 0.75rem 1rem 1rem;
+        border-top: 1px solid #f3f4f6;
+        background: #fafafa;
+      }
+      
+      /* Inputs do footer mobile */
+      .cart-sidebar-footer input {
+        font-size: 0.875rem;
+        padding: 0.625rem 0.875rem;
+        margin-bottom: 0.5rem;
+      }
+      .cart-sidebar-footer button {
+        padding: 0.75rem 1rem;
+      }
+
+      /* Desktop: manter layout original */
+      @media (min-width: 1024px) {
+        .cart-fab,
+        .cart-overlay,
+        .cart-sidebar {
+          display: none !important;
+        }
+        .carrinho-aside {
+          display: flex !important;
+        }
+      }
+
+      /* Mobile/Tablet: usar bottom sheet */
+      @media (max-width: 1023px) {
+        .carrinho-aside {
+          display: none !important;
+        }
+        .cart-fab {
+          display: flex;
+        }
+      }
+      
+      /* Tablets: bottom sheet mais compacto */
+      @media (min-width: 640px) and (max-width: 1023px) {
+        .cart-sidebar {
+          left: 50%;
+          right: auto;
+          transform: translateX(-50%) translateY(100%);
+          width: 90%;
+          max-width: 480px;
+          border-radius: 1.5rem 1.5rem 0 0;
+          max-height: 75vh;
+        }
+        .cart-sidebar.active {
+          transform: translateX(-50%) translateY(0);
+        }
+        .cart-sidebar-body {
+          max-height: 40vh;
+        }
+      }
+      
+      /* Mobile pequeno: ajustes de header */
       @media (max-width: 640px) {
         header {
           flex-direction: column;
@@ -119,80 +595,78 @@
     <div class="flex flex-col-reverse lg:flex-row gap-6 sm:gap-8 w-full">
       <!-- Carrinho -->
       <aside
-        class="carrinho-aside w-full lg:w-1/3 bg-white/90 rounded-2xl shadow-md p-4 sm:p-6 mb-4 lg:mb-0 animate-fade-in max-h-[90vh] overflow-auto"
+        class="carrinho-aside w-full lg:w-1/3 bg-white/95 rounded-2xl shadow-lg p-4 sm:p-5 mb-4 lg:mb-0 animate-fade-in lg:max-h-[85vh] border border-[#e2cdb0]/50"
       >
-        <h2 class="text-xl sm:text-2xl font-semibold mb-3 text-[#a47551]">
-          Seu carrinho
-        </h2>
-        <ul
-          id="carrinho"
-          class="p-2 sm:p-4 bg-white rounded-2xl shadow-sm space-y-2 min-h-[48px]"
-        ></ul>
+        <!-- Header do carrinho -->
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-[#e2cdb0]">
+          <svg class="w-5 h-5 text-[#a47551]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <h2 class="text-lg font-semibold text-[#3e2c23]">
+            Carrinho
+          </h2>
+          <span id="cartCount" class="ml-auto bg-[#a47551] text-white text-xs font-bold px-2 py-0.5 rounded-full transition-all">
+            0
+          </span>
+        </div>
 
-        <div class="mt-4 space-y-2">
+        <!-- Itens do carrinho (área com scroll) -->
+        <div class="cart-items-container max-h-[280px] lg:max-h-[320px] overflow-y-auto mb-4 -mx-2 px-2">
+          <ul id="carrinho" class="space-y-2"></ul>
+        </div>
+
+        <!-- Footer do carrinho (total + formulário) -->
+        <div class="cart-footer pt-4 space-y-3">
+          <!-- Total -->
+          <div class="flex items-center justify-between py-2 px-1">
+            <span class="text-sm font-medium text-[#3e2c23]">Total</span>
+            <span id="cartTotal" class="text-lg font-bold text-[#a47551] number-flow">
+              R$ 0,00
+            </span>
+          </div>
+
+          <!-- Formulário -->
           <input
             type="text"
             id="nomeCliente"
             placeholder="Seu nome"
-            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
+            class="w-full border border-[#e2cdb0] rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#a47551] focus:border-transparent transition text-sm bg-[#fdf6e3]/50"
           />
           <input
             type="email"
             id="emailCliente"
             placeholder="Seu e-mail"
-            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
+            class="w-full border border-[#e2cdb0] rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#a47551] focus:border-transparent transition text-sm bg-[#fdf6e3]/50"
           />
           <input
             type="tel"
             id="celularCliente"
             placeholder="Seu celular (apenas números)"
-            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
+            class="w-full border border-[#e2cdb0] rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#a47551] focus:border-transparent transition text-sm bg-[#fdf6e3]/50"
           />
-          <!-- ASAAS DESATIVADO - Opções de pagamento removidas temporariamente
-          <select
-            id="formaPagamento"
-            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base"
-          >
-            <option value="">Escolha a forma de pagamento</option>
-            <option value="PIX">PIX</option>
-            <option value="CREDIT_CARD">Cartão de Crédito</option>
-          </select>
-          <select
-            id="parcelas"
-            style="display: none"
-            class="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] transition text-base mt-2"
-          >
-            <option value="1">1x</option>
-            <option value="2">2x</option>
-            <option value="3">3x</option>
-            <option value="4">4x</option>
-            <option value="5">5x</option>
-            <option value="6">6x</option>
-          </select>
-          -->
 
           <button
             id="finalizarPedido"
             disabled
-            class="w-full bg-[#a47551] hover:bg-[#916546] text-white px-4 py-3 rounded-xl transition text-base font-semibold shadow"
+            class="w-full bg-[#a47551] hover:bg-[#916546] disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg flex items-center justify-center gap-2"
           >
-            Enviar Pedido via WhatsApp
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Enviar Pedido
           </button>
-          <p class="text-xs text-gray-500 text-center mt-2">
-            Ao enviar, você será redirecionado ao WhatsApp para combinar o pagamento.
+          <p class="text-xs text-gray-400 text-center">
+            Você será redirecionado ao WhatsApp
           </p>
         </div>
       </aside>
 
       <!-- Cardápio -->
       <main class="flex-1">
-        <h2 class="text-xl sm:text-2xl font-semibold mb-3 text-[#a47551]">
+        <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-[#a47551]">
           Escolha seus pudins
         </h2>
-        <div
-          id="cardapio"
-          class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6"
-        ></div>
+        <div id="cardapio" class="products-grid"></div>
       </main>
     </div>
 
@@ -210,7 +684,7 @@
     <a
       href="https://wa.me/5571986961217?text=Olá! Preciso de ajuda com meu pedido 😊"
       target="_blank"
-      class="fixed bottom-4 right-4 bg-[#e2cdb0] hover:bg-[#d1b07a] text-[#a47551] px-4 py-3 rounded-full shadow-lg flex items-center gap-2 z-50 font-semibold"
+      class="fixed bottom-4 right-4 bg-[#e2cdb0] hover:bg-[#d1b07a] text-[#a47551] px-4 py-3 rounded-full shadow-lg flex items-center gap-2 z-30 font-semibold lg:z-50"
     >
       <img
         src="https://img.icons8.com/ios-filled/24/a47551/whatsapp.png"
@@ -219,6 +693,83 @@
       />
       Ajuda
     </a>
+
+    <!-- ===== MOBILE CART SIDEBAR ===== -->
+    
+    <!-- FAB do Carrinho (Mobile) -->
+    <button id="cartFab" class="cart-fab" aria-label="Abrir carrinho">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+      <span id="cartFabBadge" class="cart-fab-badge" data-count="0">0</span>
+    </button>
+
+    <!-- Overlay -->
+    <div id="cartOverlay" class="cart-overlay"></div>
+
+    <!-- Bottom Sheet do Carrinho -->
+    <div id="cartSidebar" class="cart-sidebar">
+      <!-- Header -->
+      <div class="cart-sidebar-header">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-[#a47551]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <h2 class="text-base font-semibold text-[#3e2c23]">Carrinho</h2>
+          <span id="cartSidebarCount" class="bg-[#a47551] text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">0</span>
+        </div>
+        <button id="cartSidebarClose" class="cart-sidebar-close" aria-label="Fechar carrinho">
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body (itens) -->
+      <div class="cart-sidebar-body">
+        <ul id="carrinhoMobile" class="space-y-2"></ul>
+      </div>
+
+      <!-- Footer (total + formulário) -->
+      <div class="cart-sidebar-footer space-y-2">
+        <div class="flex items-center justify-between py-1">
+          <span class="text-sm font-medium text-[#3e2c23]">Total</span>
+          <span id="cartTotalMobile" class="text-lg font-bold text-[#a47551]">R$ 0,00</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <input
+            type="text"
+            id="nomeClienteMobile"
+            placeholder="Nome"
+            class="w-full border border-[#e2cdb0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] focus:border-transparent transition text-sm bg-white"
+          />
+          <input
+            type="tel"
+            id="celularClienteMobile"
+            placeholder="Celular"
+            class="w-full border border-[#e2cdb0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] focus:border-transparent transition text-sm bg-white"
+          />
+        </div>
+        <input
+          type="email"
+          id="emailClienteMobile"
+          placeholder="E-mail"
+          class="w-full border border-[#e2cdb0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#a47551] focus:border-transparent transition text-sm bg-white"
+        />
+
+        <button
+          id="finalizarPedidoMobile"
+          disabled
+          class="w-full bg-[#a47551] hover:bg-[#916546] disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl transition-all duration-200 text-sm font-semibold shadow-md flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          Enviar Pedido
+        </button>
+      </div>
+    </div>
 
     <!-- Modal Resumo -->
     <div
