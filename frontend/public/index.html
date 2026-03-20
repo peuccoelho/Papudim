@@ -132,7 +132,7 @@
         class="w-16 h-16 sm:w-20 sm:h-20 rounded-full shadow-lg border-4 border-[#e2cdb0] mb-2 sm:mb-3"
       />
       <h1 class="text-2xl sm:text-4xl font-bold text-[#a47551] drop-shadow mb-1 tracking-tight text-center">
-        🍮 Papudim
+        Papudim
       </h1>
       <p class="text-sm sm:text-base text-gray-600 mb-1 text-center">
         Pudins artesanais feitos com carinho!
@@ -164,51 +164,48 @@
 
       <!-- Testimonials Section -->
       <section class="w-full max-w-md sm:max-w-lg mt-4 sm:mt-8 animate-fade-in" style="animation-delay: 0.2s;">
-        <div class="rounded-2xl p-4 sm:p-6">
+        <div class="rounded-2xl p-4 sm:p-6 flex flex-col items-center">
           <!-- Quote -->
-          <div class="relative min-h-[60px] sm:min-h-[80px] mb-4 sm:mb-6">
-            <p id="quote-0" class="testimonial-quote active text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic">
-              "O pudim mais gostoso que já comi! Textura perfeita e sabor incrível. Virei cliente fiel!"
+          <div class="relative min-h-[40px] sm:min-h-[50px] mb-4 sm:mb-6 w-full text-center">
+            <p id="quote-0" class="testimonial-quote active text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic text-center">
+              "Surreal 🤤"
             </p>
-            <p id="quote-1" class="testimonial-quote inactive text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic">
-              "Encomendei para o aniversário da minha mãe e foi um sucesso! Todos amaram, já quero mais."
+            <p id="quote-1" class="testimonial-quote inactive text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic text-center">
+              "Fabuloso 😋😋😋"
             </p>
-            <p id="quote-2" class="testimonial-quote inactive text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic">
-              "Qualidade artesanal de verdade! Dá pra sentir o carinho em cada pedaço. Super recomendo!"
+            <p id="quote-2" class="testimonial-quote inactive text-base sm:text-lg font-light leading-relaxed text-[#3e2c23] italic text-center">
+              "Uma delícia!"
             </p>
           </div>
 
           <!-- Author Row -->
-          <div class="flex items-center gap-3 sm:gap-4">
+          <div class="flex flex-col items-center gap-3">
             <!-- Avatars -->
             <div class="flex -space-x-2">
-              <button id="avatar-0" onclick="setActiveTestimonial(0)" class="testimonial-avatar active w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-white bg-[#e2cdb0] flex items-center justify-center text-[#a47551] font-bold text-sm">
-                AM
+              <button id="avatar-0" onclick="setActiveTestimonial(0)" class="testimonial-avatar active w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-white">
+                <img src="img/thaisbraga.adv.jpg" alt="Thais Braga" class="w-full h-full object-cover">
               </button>
-              <button id="avatar-1" onclick="setActiveTestimonial(1)" class="testimonial-avatar inactive w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-white bg-[#d4a574] flex items-center justify-center text-white font-bold text-sm">
-                CS
+              <button id="avatar-1" onclick="setActiveTestimonial(1)" class="testimonial-avatar inactive w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-white">
+                <img src="img/frankbritto007.jpg" alt="Frank Britto" class="w-full h-full object-cover">
               </button>
-              <button id="avatar-2" onclick="setActiveTestimonial(2)" class="testimonial-avatar inactive w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-white bg-[#a47551] flex items-center justify-center text-white font-bold text-sm">
-                RF
+              <button id="avatar-2" onclick="setActiveTestimonial(2)" class="testimonial-avatar inactive w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-white">
+                <img src="img/fomededicas.jpg" alt="Fome de Dicas" class="w-full h-full object-cover">
               </button>
             </div>
 
-            <!-- Divider -->
-            <div class="h-8 w-px bg-[#e2cdb0]"></div>
-
             <!-- Active Author Info -->
-            <div class="relative flex-1 min-h-[36px]">
-              <div id="info-0" class="testimonial-info active">
-                <span class="text-sm font-semibold text-[#3e2c23]">Ana Martins</span>
-                <span class="text-xs text-gray-500">via Instagram</span>
+            <div class="relative min-h-[36px] text-center">
+              <div id="info-0" class="testimonial-info active text-center" style="position: relative;">
+                <span class="text-sm font-semibold text-[#3e2c23]">@thaisbraga.adv</span>
+                <span class="text-xs text-gray-500 block">via Instagram</span>
               </div>
-              <div id="info-1" class="testimonial-info inactive">
-                <span class="text-sm font-semibold text-[#3e2c23]">Carlos Silva</span>
-                <span class="text-xs text-gray-500">via Instagram</span>
+              <div id="info-1" class="testimonial-info inactive text-center">
+                <span class="text-sm font-semibold text-[#3e2c23]">@frankbritto007</span>
+                <span class="text-xs text-gray-500 block">via Instagram</span>
               </div>
-              <div id="info-2" class="testimonial-info inactive">
-                <span class="text-sm font-semibold text-[#3e2c23]">Renata Ferreira</span>
-                <span class="text-xs text-gray-500">via Instagram</span>
+              <div id="info-2" class="testimonial-info inactive text-center">
+                <span class="text-sm font-semibold text-[#3e2c23]">@fomededicas</span>
+                <span class="text-xs text-gray-500 block">via Instagram</span>
               </div>
             </div>
           </div>
