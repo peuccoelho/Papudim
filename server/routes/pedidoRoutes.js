@@ -2,8 +2,14 @@ import express from "express";
 import { criarPedido, pagamentoWebhook, statusPedido, adminPedidos, atualizarStatusPedido, deletarPedido } from "../controllers/pedidoController.js";
 import { autenticar } from "../middlewares/authMiddleware.js";
 import { pedidoLimiter } from "../middlewares/rateLimit.js";
+import { cardapio } from "../data/cardapio.js";
 
 const router = express.Router();
+
+// Rota pública para buscar o cardápio
+router.get("/cardapio", (req, res) => {
+  res.json(cardapio);
+});
 
 router.post("/pagar", pedidoLimiter, criarPedido);
 router.post("/pagamento-webhook", pagamentoWebhook);

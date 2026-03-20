@@ -1,94 +1,7 @@
 
-const cardapio = [
-  {
-    nome: "Pudim Doçura Perfeita",
-    imagem: "img/pudim-docura-perfeita.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 13.90 }
-    ]
-  },
-  {
-    nome: "Pudim Zero Lactose",
-    imagem: "img/pudim-zero-lactose.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 14.50 },
-      { peso: "1100ml", preco: 97.80 }
-    ]
-  },
-  {
-    nome: "Pudim de Abacaxi",
-    imagem: "img/pudim-abacaxi.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 15.00 },
-      { peso: "550ml", preco: 59.90 },
-      { peso: "1100ml", preco: 89.50 }
-    ]
-  },
-  {
-    nome: "Pudim Arretado de Morango",
-    imagem: "img/pudim-arretado-morango.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 15.00 },
-      { peso: "1100ml", preco: 115.50 }
-    ]
-  },
-  {
-    nome: "Pudim Doce Cangaço",
-    imagem: "img/pudim-doce-cangaco.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 12.00 },
-      { peso: "1100ml", preco: 85.90 }
-    ]
-  },
-  {
-    nome: "Pudim de Café",
-    imagem: "img/pudim-cafe.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 12.90 },
-      { peso: "1100ml", preco: 95.50 }
-    ]
-  },
-  {
-    nome: "Pudim Raiz Tradicional",
-    imagem: "img/pudim-raiz.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 12.00 },
-      { peso: "550ml", preco: 58.90 },
-      { peso: "1100ml", preco: 89.90 }
-    ]
-  },
-  {
-    nome: "Pudim Cocada Cremosa",
-    imagem: "img/pudim-cocada-cremosa.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 15.00 },
-      { peso: "1100ml", preco: 129.00 }
-    ]
-  },
-  {
-    nome: "Pudim Chocobom",
-    imagem: "img/pudim-chocobom.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 14.50 }
-    ]
-  },
-  {
-    nome: "Pudim Nordestino de Maracujá",
-    imagem: "img/pudim-nordestino-maracuja.jpg",
-    tamanhos: [
-      { peso: "150ml", preco: 15.00 }
-    ]
-  },
-  {
-    nome: "Pudim Panetone",
-    imagem: "img/pudim-panetone.jpg",
-    tamanhos: [
-      { peso: "550ml", preco: 63.50 },
-      { peso: "1100ml", preco: 125.90 }
-    ]
-  }
-];
+const API_URL = "https://homepudimback.onrender.com/api";
 
+let cardapio = [];
 const carrinho = [];
 let ultimoTotal = 0;
 
@@ -211,7 +124,30 @@ function verificarHorarioFuncionamento() {
 verificarHorarioFuncionamento();
 setInterval(verificarHorarioFuncionamento, 60000);
 
-if (cardapioContainer) {
+// Função para carregar o cardápio da API
+async function carregarCardapio() {
+  if (!cardapioContainer) return;
+  
+  try {
+    cardapioContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Carregando cardápio...</p>';
+    
+    const response = await fetch(`${API_URL}/cardapio`);
+    if (!response.ok) throw new Error('Erro ao carregar cardápio');
+    
+    cardapio = await response.json();
+    renderizarCardapio();
+  } catch (error) {
+    console.error('Erro ao carregar cardápio:', error);
+    cardapioContainer.innerHTML = '<p class="text-center text-red-500 py-8">Erro ao carregar cardápio. Tente recarregar a página.</p>';
+  }
+}
+
+// Função para renderizar os cards do cardápio
+function renderizarCardapio() {
+  if (!cardapioContainer || cardapio.length === 0) return;
+  
+  cardapioContainer.innerHTML = '';
+  
   cardapio.forEach((item, index) => {
     const card = document.createElement("div");
     card.className = "product-card opacity-0 animate-fade-in";
@@ -258,7 +194,12 @@ if (cardapioContainer) {
     `;
     cardapioContainer.appendChild(card);
   });
+}
 
+// Carrega o cardápio ao iniciar
+carregarCardapio();
+
+if (cardapioContainer) {
   // Event listener para mudança de tamanho - atualiza o preço
   cardapioContainer.addEventListener('change', function(e) {
     if (e.target.classList.contains('product-size-select')) {
@@ -295,12 +236,15 @@ function adicionarAoCarrinho(index) {
   const tamanhoSelecionado = item.tamanhos[tamanhoIndex];
   
   const nomeCompleto = `${item.nome} (${tamanhoSelecionado.peso})`;
+  const chaveCarrinho = `${item.id}-${tamanhoSelecionado.peso}`;
   
-  const existente = carrinho.find(p => p.nome === nomeCompleto);
+  const existente = carrinho.find(p => p.chaveCarrinho === chaveCarrinho);
   if (existente) {
     existente.quantidade += quantidade;
   } else {
     carrinho.push({ 
+      chaveCarrinho,
+      produtoId: item.id,
       nome: nomeCompleto, 
       preco: tamanhoSelecionado.preco, 
       peso: tamanhoSelecionado.peso,
@@ -559,6 +503,7 @@ btnFinalizar.addEventListener("click", async (e) => {
     endereco: `${rua}, ${numero}`,
     celular: celular.replace(/\D/g, ""),
     itens: carrinho.map(item => ({
+      produtoId: item.produtoId,
       nome: item.nome,
       preco: item.preco,
       peso: item.peso,
@@ -634,7 +579,7 @@ btnConfirmarResumo.addEventListener("click", async () => {
     modalResumo.classList.remove("active");
     mostrarLoader();
 
-    const res = await fetch("https://homepudimback.onrender.com/api/pagar", {
+    const res = await fetch(`${API_URL}/pagar`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pedidoParaEnviar),

@@ -20,16 +20,9 @@ export async function deletarPedido(req, res) {
 import fetch from "node-fetch";
 import axios from "axios";
 import { sanitizeInput } from "../utils/sanitize.js";
+import { cardapio, buscarPreco } from "../data/cardapio.js";
 // ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
 // import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
-
-const PRECOS_PRODUTOS = {
-  "Pudim Tradicional": 7.9,
-  "Pudim de Coco": 9.3,
-  "Pudim de Maracujá": 9.9,
-  "Pudim de Morango": 10.6,
-  "Pudim de Paçoca": 8.9
-};
 
 
 export async function criarPedido(req, res) {
@@ -69,16 +62,21 @@ export async function criarPedido(req, res) {
   const itensSanitizados = [];
 
   for (const item of pedido.itens) {
-    const precoOficial = PRECOS_PRODUTOS[item.nome];
+    // Validação usando cardápio centralizado - NUNCA confiar no preço do frontend
+    const precoOficial = buscarPreco(item.produtoId, item.peso);
+    
     if (
-      !precoOficial ||
+      precoOficial === null ||
       typeof item.quantidade !== "number" ||
       item.quantidade < 1
     ) {
-      return res.status(400).json({ erro: "Itens do pedido inválidos." });
+      console.warn("Item inválido recebido:", item);
+      return res.status(400).json({ erro: `Item inválido: ${item.nome || item.produtoId}` });
     }
+    
     totalCalculado += precoOficial * item.quantidade;
     itensSanitizados.push({
+      produtoId: sanitizeInput(item.produtoId),
       nome: sanitizeInput(item.nome),
       preco: precoOficial,
       peso: sanitizeInput(item.peso || ""),
