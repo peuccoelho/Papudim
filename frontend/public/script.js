@@ -1,10 +1,92 @@
 
 const cardapio = [
-  { nome: "Pudim Tradicional", preco: 7.9, peso: "120g", imagem: "img/pudim-tradicional.jpg" },
-  { nome: "Pudim de Coco", preco: 9.3, peso: "120g", imagem: "img/pudim-coco.jpg" },
-  { nome: "Pudim de Maracujá", preco: 9.9, peso: "120g", imagem: "img/pudim-maracuja.jpg" },
-  { nome: "Pudim de Morango", preco: 10.6, peso: "120g", imagem: "img/pudim-morango.jpg" },
-  { nome: "Pudim de Paçoca", preco: 8.9, peso: "120g", imagem: "img/pudim-pacoca.jpg" }
+  {
+    nome: "Pudim Doçura Perfeita",
+    imagem: "img/pudim-docura-perfeita.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 13.90 }
+    ]
+  },
+  {
+    nome: "Pudim Zero Lactose",
+    imagem: "img/pudim-zero-lactose.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 14.50 },
+      { peso: "1100ml", preco: 97.80 }
+    ]
+  },
+  {
+    nome: "Pudim de Abacaxi",
+    imagem: "img/pudim-abacaxi.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 15.00 },
+      { peso: "550ml", preco: 59.90 },
+      { peso: "1100ml", preco: 89.50 }
+    ]
+  },
+  {
+    nome: "Pudim Arretado de Morango",
+    imagem: "img/pudim-arretado-morango.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 15.00 },
+      { peso: "1100ml", preco: 115.50 }
+    ]
+  },
+  {
+    nome: "Pudim Doce Cangaço",
+    imagem: "img/pudim-doce-cangaco.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 12.00 },
+      { peso: "1100ml", preco: 85.90 }
+    ]
+  },
+  {
+    nome: "Pudim de Café",
+    imagem: "img/pudim-cafe.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 12.90 },
+      { peso: "1100ml", preco: 95.50 }
+    ]
+  },
+  {
+    nome: "Pudim Raiz Tradicional",
+    imagem: "img/pudim-raiz.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 12.00 },
+      { peso: "550ml", preco: 58.90 },
+      { peso: "1100ml", preco: 89.90 }
+    ]
+  },
+  {
+    nome: "Pudim Cocada Cremosa",
+    imagem: "img/pudim-cocada-cremosa.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 15.00 },
+      { peso: "1100ml", preco: 129.00 }
+    ]
+  },
+  {
+    nome: "Pudim Chocobom",
+    imagem: "img/pudim-chocobom.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 14.50 }
+    ]
+  },
+  {
+    nome: "Pudim Nordestino de Maracujá",
+    imagem: "img/pudim-nordestino-maracuja.jpg",
+    tamanhos: [
+      { peso: "150ml", preco: 15.00 }
+    ]
+  },
+  {
+    nome: "Pudim Panetone",
+    imagem: "img/pudim-panetone.jpg",
+    tamanhos: [
+      { peso: "550ml", preco: 63.50 },
+      { peso: "1100ml", preco: 125.90 }
+    ]
+  }
 ];
 
 const carrinho = [];
@@ -133,24 +215,39 @@ if (cardapioContainer) {
   cardapio.forEach((item, index) => {
     const card = document.createElement("div");
     card.className = "product-card opacity-0 animate-fade-in";
+    
+    const primeiroTamanho = item.tamanhos[0];
+    const temMultiplosTamanhos = item.tamanhos.length > 1;
+    
+    let tamanhoSelectorHTML = '';
+    if (temMultiplosTamanhos) {
+      tamanhoSelectorHTML = `
+        <select class="product-size-select" data-index="${index}">
+          ${item.tamanhos.map((t, i) => `<option value="${i}">${t.peso}</option>`).join('')}
+        </select>
+      `;
+    } else {
+      tamanhoSelectorHTML = `<p class="product-card-meta">${primeiroTamanho.peso}</p>`;
+    }
+    
     card.innerHTML = `
       <div class="product-card-image">
         <img src="${item.imagem || 'img/placeholder.jpg'}" alt="${escapeHTML(item.nome)}" loading="lazy" />
       </div>
       <div class="product-card-body">
         <h3 class="product-card-title">${escapeHTML(item.nome)}</h3>
-        <p class="product-card-meta">${escapeHTML(item.peso)}</p>
-        <p class="product-card-price">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
+        ${tamanhoSelectorHTML}
+        <p class="product-card-price" data-index="${index}">R$ ${primeiroTamanho.preco.toFixed(2).replace('.', ',')}</p>
         <div class="product-card-actions">
           <input 
             type="number" 
             min="1" 
             value="1" 
             class="product-qty-input" 
-            id="quantidade-${index}" 
+            data-index="${index}" 
             aria-label="Quantidade"
           />
-          <button class="product-add-btn" onclick="adicionarAoCarrinho(${index})">
+          <button class="product-add-btn" data-index="${index}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -161,21 +258,58 @@ if (cardapioContainer) {
     `;
     cardapioContainer.appendChild(card);
   });
+
+  // Event listener para mudança de tamanho - atualiza o preço
+  cardapioContainer.addEventListener('change', function(e) {
+    if (e.target.classList.contains('product-size-select')) {
+      const index = parseInt(e.target.dataset.index);
+      const item = cardapio[index];
+      const tamanhoIndex = parseInt(e.target.value);
+      const tamanho = item.tamanhos[tamanhoIndex];
+      
+      const precoElement = cardapioContainer.querySelector(`.product-card-price[data-index="${index}"]`);
+      if (precoElement) {
+        precoElement.textContent = 'R$ ' + tamanho.preco.toFixed(2).replace('.', ',');
+      }
+    }
+  });
+
+  // Event listener para adicionar ao carrinho
+  cardapioContainer.addEventListener('click', function(e) {
+    const btn = e.target.closest('.product-add-btn');
+    if (btn) {
+      const index = parseInt(btn.dataset.index);
+      adicionarAoCarrinho(index);
+    }
+  });
 }
 
 function adicionarAoCarrinho(index) {
   const item = cardapio[index];
-  const quantidadeInput = document.getElementById(`quantidade-${index}`);
+  const card = cardapioContainer.querySelector(`.product-add-btn[data-index="${index}"]`).closest('.product-card');
+  const quantidadeInput = card.querySelector('.product-qty-input');
+  const selectTamanho = card.querySelector('.product-size-select');
   const quantidade = Math.max(1, parseInt(quantidadeInput?.value || "1"));
-
-  const existente = carrinho.find(p => p.nome === item.nome);
+  
+  const tamanhoIndex = selectTamanho ? parseInt(selectTamanho.value) : 0;
+  const tamanhoSelecionado = item.tamanhos[tamanhoIndex];
+  
+  const nomeCompleto = `${item.nome} (${tamanhoSelecionado.peso})`;
+  
+  const existente = carrinho.find(p => p.nome === nomeCompleto);
   if (existente) {
     existente.quantidade += quantidade;
   } else {
-    carrinho.push({ ...item, quantidade });
+    carrinho.push({ 
+      nome: nomeCompleto, 
+      preco: tamanhoSelecionado.preco, 
+      peso: tamanhoSelecionado.peso,
+      imagem: item.imagem,
+      quantidade 
+    });
   }
 
-  exibirToast(`${item.nome} adicionado!`);
+  exibirToast(`${nomeCompleto} adicionado!`);
   atualizarCarrinho();
 }
 
