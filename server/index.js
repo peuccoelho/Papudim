@@ -57,7 +57,7 @@ const DB_FILE = path.join(__dirname, "pedidos.json");
 // configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN);
 
 app.use(cors({
-  origin: ["https://papudim.netlify.app", "http://localhost:5173"],
+  origin: ["https://papudim.netlify.app", "https://papudim.tech", "https://www.papudim.tech", "http://localhost:5173"],
   credentials: true,
 }));
 
@@ -106,6 +106,15 @@ app.locals.pedidosCollection = pedidosCollection;
 // app.locals.ASAAS_ACCESS_TOKEN = ASAAS_ACCESS_TOKEN;
 
 app.use("/api", pedidoRoutes);
+
+// Rota de health check para manter servidor acordado
+app.get("/", (req, res) => {
+  res.json({ status: "ok", message: "Papudim API rodando!", timestamp: new Date().toISOString() });
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", uptime: process.uptime() });
+});
 
 // endpoint para testar webhook manualmente
 app.post("/api/test-webhook", (req, res) => {
