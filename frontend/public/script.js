@@ -14,7 +14,8 @@ let ultimoTotal = 0;
 const cardapioContainer = document.getElementById("cardapio");
 const carrinhoContainer = document.getElementById("carrinho");
 const nomeClienteInput = document.getElementById("nomeCliente");
-const emailClienteInput = document.getElementById("emailCliente");
+const ruaClienteInput = document.getElementById("ruaCliente");
+const numeroClienteInput = document.getElementById("numeroCliente");
 const celularClienteInput = document.getElementById("celularCliente");
 const btnFinalizar = document.getElementById("finalizarPedido");
 const toggleInfo = document.getElementById("toggleInfo");
@@ -38,7 +39,8 @@ const carrinhoMobileContainer = document.getElementById("carrinhoMobile");
 const cartSidebarCount = document.getElementById("cartSidebarCount");
 const cartTotalMobile = document.getElementById("cartTotalMobile");
 const nomeClienteMobile = document.getElementById("nomeClienteMobile");
-const emailClienteMobile = document.getElementById("emailClienteMobile");
+const ruaClienteMobile = document.getElementById("ruaClienteMobile");
+const numeroClienteMobile = document.getElementById("numeroClienteMobile");
 const celularClienteMobile = document.getElementById("celularClienteMobile");
 const btnFinalizarMobile = document.getElementById("finalizarPedidoMobile");
 
@@ -78,10 +80,19 @@ function sincronizarCampos(origem, destino) {
   });
 });
 
-[emailClienteInput, emailClienteMobile].forEach(input => {
+[ruaClienteInput, ruaClienteMobile].forEach(input => {
   input?.addEventListener("input", () => {
-    if (input === emailClienteInput) sincronizarCampos(emailClienteInput, emailClienteMobile);
-    else sincronizarCampos(emailClienteMobile, emailClienteInput);
+    if (input === ruaClienteInput) sincronizarCampos(ruaClienteInput, ruaClienteMobile);
+    else sincronizarCampos(ruaClienteMobile, ruaClienteInput);
+    validarFormulario();
+    atualizarBarraProgresso();
+  });
+});
+
+[numeroClienteInput, numeroClienteMobile].forEach(input => {
+  input?.addEventListener("input", () => {
+    if (input === numeroClienteInput) sincronizarCampos(numeroClienteInput, numeroClienteMobile);
+    else sincronizarCampos(numeroClienteMobile, numeroClienteInput);
     validarFormulario();
     atualizarBarraProgresso();
   });
@@ -380,19 +391,20 @@ btnFinalizar.addEventListener("click", async (e) => {
   e.preventDefault();
 
   const nome = nomeClienteInput.value.trim();
-  const email = emailClienteInput.value.trim();
+  const rua = ruaClienteInput.value.trim();
+  const numero = numeroClienteInput.value.trim();
   const celular = celularClienteInput.value.trim();
   // ASAAS DESATIVADO - não precisa mais de forma de pagamento
   // const pagamento = formaPagamentoInput.value;
   // const parcelas = parseInt(document.getElementById("parcelas")?.value || "1");
   const totalUnidades = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
 
-  if (!nome || !email || !celular) {
+  if (!nome || !rua || !numero || !celular) {
     exibirToast("Preencha todos os campos antes de finalizar o pedido.");
     return;
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    exibirToast("Digite um e-mail válido.");
+  if (rua.length < 3) {
+    exibirToast("Digite o nome da rua completo.");
     return;
   }
   if (!/^\d{10,15}$/.test(celular.replace(/\D/g, ""))) {
@@ -410,13 +422,14 @@ btnFinalizar.addEventListener("click", async (e) => {
   pedidoParaEnviar = {
     id: "pedido-" + Date.now(),
     cliente: nome,
-    email,
+    endereco: `${rua}, ${numero}`,
     celular: celular.replace(/\D/g, ""),
     itens: carrinho.map(item => ({
       nome: item.nome,
       preco: item.preco,
       peso: item.peso,
-      quantidade: item.quantidade
+      quantidade: item.quantidade,
+      imagem: item.imagem || ''
     })),
     total
     // ASAAS DESATIVADO
@@ -424,46 +437,67 @@ btnFinalizar.addEventListener("click", async (e) => {
     // parcelas: pagamento === "CREDIT_CARD" ? parcelas : undefined
   };
 
+  // Gerar HTML dos itens do pedido
+  const resumoItens = document.getElementById("resumoItens");
+  const resumoDados = document.getElementById("resumoDados");
   
-  let html = `<ul class="mb-2">`;
+  let itensHtml = '';
   carrinho.forEach(item => {
-    html += `<li>${escapeHTML(item.nome)} (${escapeHTML(item.peso)}) x${item.quantidade} - R$ ${(item.preco * item.quantidade).toFixed(2).replace(".", ",")}</li>`;
+    const imgSrc = item.imagem || 'img/pudim-tradicional.jpg';
+    itensHtml += `
+      <div class="order-item">
+        <img src="${escapeHTML(imgSrc)}" alt="${escapeHTML(item.nome)}" class="order-item-img">
+        <div class="order-item-info">
+          <p class="order-item-name">${escapeHTML(item.nome)}</p>
+          <p class="order-item-details">${escapeHTML(item.peso)} • Qtd: ${item.quantidade}</p>
+        </div>
+        <p class="order-item-price">R$ ${(item.preco * item.quantidade).toFixed(2).replace(".", ",")}</p>
+      </div>
+    `;
   });
-  html += `</ul>`;
-  html += `<div class="mb-1"><b>Nome:</b> ${escapeHTML(nome)}</div>`;
-  html += `<div class="mb-1"><b>E-mail:</b> ${escapeHTML(email)}</div>`;
-  html += `<div class="mb-1"><b>Celular:</b> ${escapeHTML(celular)}</div>`;
-  // ASAAS DESATIVADO - removido informação de pagamento
-  // html += `<div class="mb-1"><b>Pagamento:</b> `;
-  // if (pagamento === "PIX") {
-  //   html += "PIX";
-  // } else if (pagamento === "CREDIT_CARD") {
-  //   html += "Cartão de Crédito";
-  //   if (parcelas > 1) {
-  //     html += ` (${parcelas}x)`;
-  //   }
-  // } else {
-  //   html += escapeHTML(pagamento);
-  // }
-  // html += `</div>`;
+  resumoItens.innerHTML = itensHtml;
 
+  // Gerar HTML do resumo de dados
+  let dadosHtml = `
+    <div class="summary-row">
+      <span class="summary-label">Cliente</span>
+      <span class="summary-value">${escapeHTML(nome)}</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Endereço</span>
+      <span class="summary-value">${escapeHTML(rua)}, nº ${escapeHTML(numero)}</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Celular</span>
+      <span class="summary-value">${escapeHTML(celular)}</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Itens</span>
+      <span class="summary-value">${totalUnidades} ${totalUnidades === 1 ? 'item' : 'itens'}</span>
+    </div>
+    <div class="summary-row total">
+      <span class="summary-label">Total</span>
+      <span class="summary-value">R$ ${total.toFixed(2).replace(".", ",")}</span>
+    </div>
+  `;
+  resumoDados.innerHTML = dadosHtml;
 
-  html += `<div class="mt-2 text-lg font-bold">Total: R$ ${total.toFixed(2).replace(".", ",")}</div>`;
-  html += `<div class="mt-2 text-sm text-gray-600">Ao confirmar, você será redirecionado ao WhatsApp para finalizar o pedido.</div>`;
-
-  resumoConteudo.innerHTML = html;
-  modalResumo.classList.remove("hidden");
+  // Fechar carrinho mobile se estiver aberto
+  fecharCarrinhoMobile();
+  
+  // Mostrar modal com animação
+  modalResumo.classList.add("active");
 });
 
 
 btnCancelarResumo.addEventListener("click", () => {
-  modalResumo.classList.add("hidden");
+  modalResumo.classList.remove("active");
 });
 
 
 btnConfirmarResumo.addEventListener("click", async () => {
   try {
-    modalResumo.classList.add("hidden");
+    modalResumo.classList.remove("active");
     mostrarLoader();
 
     const res = await fetch("https://homepudimback.onrender.com/api/pagar", {
@@ -484,7 +518,7 @@ btnConfirmarResumo.addEventListener("click", async () => {
         const mensagem = `🍮 *Novo Pedido - Papudim*
 
 *Cliente:* ${data.cliente}
-*E-mail:* ${data.email}
+*Endereço:* ${data.endereco}
 *Celular:* ${data.celular}
 
 *Itens:*
@@ -505,7 +539,8 @@ Aguardo confirmação para finalizar o pedido! 😊`;
         carrinho.length = 0;
         atualizarCarrinho();
         nomeClienteInput.value = "";
-        emailClienteInput.value = "";
+        ruaClienteInput.value = "";
+        numeroClienteInput.value = "";
         celularClienteInput.value = "";
         
         exibirToast("Pedido enviado! Complete pelo WhatsApp.");
@@ -580,10 +615,11 @@ function exibirToast(msg) {
 function validarFormulario() {
   // Pegar valores de qualquer um dos formulários (são sincronizados)
   const nome = (nomeClienteInput?.value || nomeClienteMobile?.value || "").trim();
-  const email = (emailClienteInput?.value || emailClienteMobile?.value || "").trim();
+  const rua = (ruaClienteInput?.value || ruaClienteMobile?.value || "").trim();
+  const numero = (numeroClienteInput?.value || numeroClienteMobile?.value || "").trim();
   const celular = (celularClienteInput?.value || celularClienteMobile?.value || "").trim();
 
-  const formularioValido = nome && email && celular && carrinho.length > 0;
+  const formularioValido = nome && rua && numero && celular && carrinho.length > 0;
   
   // Desabilitar/habilitar ambos os botões
   if (btnFinalizar) btnFinalizar.disabled = !formularioValido;
@@ -592,13 +628,15 @@ function validarFormulario() {
 
 function atualizarBarraProgresso() {
   const nomePreenchido = (nomeClienteInput?.value || nomeClienteMobile?.value || "").trim() !== "";
-  const emailPreenchido = (emailClienteInput?.value || emailClienteMobile?.value || "").trim() !== "";
+  const ruaPreenchida = (ruaClienteInput?.value || ruaClienteMobile?.value || "").trim() !== "";
+  const numeroPreenchido = (numeroClienteInput?.value || numeroClienteMobile?.value || "").trim() !== "";
   const celularPreenchido = (celularClienteInput?.value || celularClienteMobile?.value || "").trim() !== "";
   const progresso =
-    (carrinho.length > 0 ? 25 : 0) +
-    (nomePreenchido ? 25 : 0) +
-    (emailPreenchido ? 25 : 0) +
-    (celularPreenchido ? 25 : 0);
+    (carrinho.length > 0 ? 20 : 0) +
+    (nomePreenchido ? 20 : 0) +
+    (ruaPreenchida ? 20 : 0) +
+    (numeroPreenchido ? 20 : 0) +
+    (celularPreenchido ? 20 : 0);
   if (barraProgresso) barraProgresso.style.width = `${progresso}%`;
 }
 
@@ -606,7 +644,8 @@ function atualizarBarraProgresso() {
 btnFinalizarMobile?.addEventListener("click", (e) => {
   // Sincronizar campos mobile → desktop antes de disparar
   if (nomeClienteMobile && nomeClienteInput) nomeClienteInput.value = nomeClienteMobile.value;
-  if (emailClienteMobile && emailClienteInput) emailClienteInput.value = emailClienteMobile.value;
+  if (ruaClienteMobile && ruaClienteInput) ruaClienteInput.value = ruaClienteMobile.value;
+  if (numeroClienteMobile && numeroClienteInput) numeroClienteInput.value = numeroClienteMobile.value;
   if (celularClienteMobile && celularClienteInput) celularClienteInput.value = celularClienteMobile.value;
   
   // Disparar click no botão desktop (que tem toda a lógica)
