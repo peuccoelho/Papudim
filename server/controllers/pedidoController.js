@@ -42,7 +42,7 @@ export async function criarPedido(req, res) {
   // validação 
   if (
     !pedido.cliente ||
-    !pedido.email ||
+    !pedido.endereco ||
     !pedido.celular ||
     !Array.isArray(pedido.itens) ||
     pedido.itens.length === 0
@@ -50,15 +50,15 @@ export async function criarPedido(req, res) {
     return res.status(400).json({ erro: "Dados do pedido inválidos." });
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pedido.email)) {
-    return res.status(400).json({ erro: "E-mail inválido." });
+  if (pedido.endereco.length < 5) {
+    return res.status(400).json({ erro: "Endereço inválido." });
   }
   if (!/^\d{10,11}$/.test(pedido.celular)) {
     return res.status(400).json({ erro: "Celular inválido. Use DDD + número, só números." });
   }
 
   pedido.cliente = sanitizeInput(pedido.cliente);
-  pedido.email = sanitizeInput(pedido.email);
+  pedido.endereco = sanitizeInput(pedido.endereco);
   pedido.celular = sanitizeInput(pedido.celular.replace(/\D/g, "")); 
 
   if (!/^\d{11}$/.test(pedido.celular)) {
@@ -103,7 +103,7 @@ export async function criarPedido(req, res) {
   console.log("Pedido salvo no Firebase com sucesso");
 
 
-  const { cliente, email, celular, total } = pedido;
+  const { cliente, endereco, celular, total } = pedido;
   // ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
   // const { cliente, email, celular, total, pagamento, parcelas } = pedido;
 
@@ -140,7 +140,7 @@ export async function criarPedido(req, res) {
       sucesso: true,
       pedidoId: pedidoId,
       cliente: cliente,
-      email: email,
+      endereco: pedido.endereco,
       celular: celular,
       total: total,
       itens: itensSanitizados
@@ -170,7 +170,7 @@ async function enviarWhatsAppPedido(pedido) {
 
   const mensagem = `✅ Pagamento confirmado!
 Cliente: ${pedido.cliente}
-E-mail: ${pedido.email}
+Endereço: ${pedido.endereco}
 Celular: ${pedido.celular}
 Total: R$ ${total}
 Itens: ${itensTexto}`;
