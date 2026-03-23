@@ -207,6 +207,27 @@
       .product-card:hover .product-card-image img {
         transform: scale(1.05);
       }
+      .product-card-image::before {
+        content: 'Ver detalhes';
+        position: absolute;
+        bottom: 0.75rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background: rgba(164, 117, 81, 0.95);
+        color: white;
+        padding: 0.35rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 5;
+        white-space: nowrap;
+      }
+      .product-card:hover .product-card-image::before {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
       
       .product-card-body {
         display: flex;
@@ -659,6 +680,259 @@
         box-shadow: 0 2px 8px rgba(164, 117, 81, 0.08);
       }
 
+      /* ===== SEÇÃO SOBRE NÓS ===== */
+      .sobre-nos-section {
+        background: linear-gradient(135deg, #fef7ed 0%, #fdf2e3 50%, #f8e7d1 100%);
+        border-radius: 1.5rem;
+        border: 1px solid #e2cdb0;
+        padding: 2.5rem 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(164, 117, 81, 0.1);
+      }
+      .sobre-nos-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(164, 117, 81, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+      }
+      .sobre-nos-section::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(228, 189, 140, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+      }
+      .sobre-nos-content {
+        position: relative;
+        z-index: 1;
+      }
+      .sobre-nos-icon {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1.25rem;
+        background: linear-gradient(135deg, #a47551 0%, #916546 100%);
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(164, 117, 81, 0.3);
+        transform: rotate(-3deg);
+      }
+      .sobre-nos-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #a47551;
+        margin-bottom: 0.75rem;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+      }
+      .sobre-nos-text {
+        color: #5c4033;
+        line-height: 1.8;
+        font-size: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .sobre-nos-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #a47551;
+        margin-top: 1.25rem;
+        box-shadow: 0 2px 8px rgba(164, 117, 81, 0.1);
+        border: 1px solid #e2cdb0;
+      }
+
+      /* ===== MODAL PREVIEW DO PUDIM ===== */
+      .preview-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 60;
+        padding: 1rem;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+      .preview-modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      .preview-modal {
+        background: #fdf6e3;
+        border-radius: 1.5rem;
+        max-width: 400px;
+        width: 100%;
+        max-height: 90vh;
+        overflow: hidden;
+        transform: scale(0.9) translateY(20px);
+        opacity: 0;
+        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+      .preview-modal-overlay.active .preview-modal {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+      .preview-modal-image {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+      }
+      .preview-modal-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .preview-modal-image::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: linear-gradient(to top, #fdf6e3 0%, transparent 100%);
+      }
+      .preview-modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        transition: all 0.2s ease;
+        z-index: 10;
+      }
+      .preview-modal-close:hover {
+        transform: scale(1.1);
+        background: #fee2e2;
+      }
+      .preview-modal-close svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: #991b1b;
+      }
+      .preview-modal-body {
+        padding: 1.5rem;
+        padding-top: 0.5rem;
+      }
+      .preview-modal-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #a47551;
+        margin-bottom: 0.75rem;
+      }
+      .preview-modal-description {
+        color: #5c4033;
+        line-height: 1.7;
+        font-size: 0.95rem;
+        margin-bottom: 1.25rem;
+      }
+      .preview-modal-footer {
+        display: flex;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e2cdb0;
+      }
+      .preview-modal-btn {
+        flex: 1;
+        padding: 0.875rem 1rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      .preview-modal-btn-primary {
+        background: linear-gradient(135deg, #a47551 0%, #916546 100%);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(164, 117, 81, 0.3);
+      }
+      .preview-modal-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(164, 117, 81, 0.4);
+      }
+      .preview-modal-btn-secondary {
+        background: white;
+        color: #5c4033;
+        border: 1px solid #e2cdb0;
+      }
+      .preview-modal-btn-secondary:hover {
+        background: #f8e7d1;
+      }
+
+      /* Cursor pointer nos cards */
+      .product-card {
+        cursor: pointer;
+      }
+      .product-card-actions {
+        position: relative;
+        z-index: 5;
+      }
+
+      @media (max-width: 640px) {
+        .sobre-nos-section {
+          padding: 1.75rem 1.25rem;
+          margin-bottom: 1.5rem;
+        }
+        .sobre-nos-icon {
+          width: 3.5rem;
+          height: 3.5rem;
+        }
+        .sobre-nos-title {
+          font-size: 1.25rem;
+        }
+        .sobre-nos-text {
+          font-size: 0.9rem;
+          line-height: 1.7;
+        }
+        .preview-modal-image {
+          height: 180px;
+        }
+        .preview-modal-body {
+          padding: 1.25rem;
+        }
+        .preview-modal-title {
+          font-size: 1.2rem;
+        }
+        .preview-modal-description {
+          font-size: 0.9rem;
+        }
+        .preview-modal-footer {
+          flex-direction: column;
+        }
+      }
+
       /* Order item in modal */
       .order-item {
         display: flex;
@@ -861,6 +1135,27 @@
 
       <!-- Cardápio -->
       <main class="flex-1">
+        <!-- Seção Sobre Nós -->
+        <section class="sobre-nos-section animate-fade-in">
+          <div class="sobre-nos-content text-center">
+            <div class="sobre-nos-icon">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              </svg>
+            </div>
+            <h2 class="sobre-nos-title">Feito com Amor no Nordeste</h2>
+            <p class="sobre-nos-text">
+              Uma pequena empresa nordestina de pudins, nascida em novembro de 2024, onde o sabor autêntico é feito com amor, direto da cozinha de casa para sua mesa.
+            </p>
+            <div class="sobre-nos-badge">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              Salvador, Bahia
+            </div>
+          </div>
+        </section>
+
         <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-[#a47551]">
           Escolha seus pudins
         </h2>
@@ -1044,6 +1339,35 @@
           <p class="text-xs text-center text-gray-400">
             Você será redirecionado ao WhatsApp para finalizar
           </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Preview do Pudim -->
+    <div id="previewModal" class="preview-modal-overlay">
+      <div class="preview-modal">
+        <div class="preview-modal-image">
+          <button id="previewModalClose" class="preview-modal-close" aria-label="Fechar">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img id="previewModalImg" src="" alt="" />
+        </div>
+        <div class="preview-modal-body">
+          <h3 id="previewModalTitle" class="preview-modal-title"></h3>
+          <p id="previewModalDesc" class="preview-modal-description"></p>
+          <div class="preview-modal-footer">
+            <button id="previewModalAdd" class="preview-modal-btn preview-modal-btn-primary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Adicionar
+            </button>
+            <button id="previewModalCancel" class="preview-modal-btn preview-modal-btn-secondary">
+              Fechar
+            </button>
+          </div>
         </div>
       </div>
     </div>

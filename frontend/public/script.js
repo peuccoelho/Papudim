@@ -41,6 +41,81 @@ const btnFinalizarMobile = document.getElementById("finalizarPedidoMobile");
 
 let pedidoParaEnviar = null;
 
+// ===== DESCRIÇÕES DOS PUDINS =====
+const pudimDescricoes = {
+  "Pudim Cocada Cremosa": "O pudim de coco, meu xodó, é uma gostosura dos deuses! Feito com leite condensado, ovos, leite de coco fresquinho, açúcar caramelizada e lascas fininhas de coco seco. Uma delícia que faz a gente sentir o gostinho do Nordeste em cada colherada.",
+  "Pudim Raiz": "Simplesmente irresistível. Nosso pudim tradicional é a combinação perfeita de ovos, leite condensado, açúcar e leite. Com sua casquinha dourada e seu interior macio que derrete na boca.",
+  "Pudim Panetone": "Uma fusão deliciosa do clássico pudim com o sabor natalino do panetone, repleto de frutas e aromas de festas!",
+  "Pudim Chocobom": "O pudim de chocolate é uma sobremesa divina que combina a suavidade do pudim tradicional com a intensidade do chocolate. Sua textura cremosa derrete na boca, enquanto o sabor rico e encorpado envolve os sentidos.",
+  "Pudim Doçura Perfeita": "Mergulhe no sabor autêntico e na textura aveludada deste pudim. Uma combinação perfeita de cremosidade e doce de leite, proporcionando uma experiência sensorial única.",
+  "Pudim Zero Lactose": "Descubra a delícia irresistível do nosso pudim zero lactose, onde a tradição se encontra com a inovação. Mantém a mesma textura cremosa e sabor suave que os clientes amam.",
+  "Pudim de Abacaxi": "Uma sobremesa leve e refrescante, com textura cremosa e o sabor tropical do abacaxi caramelizado.",
+  "Pudim de Café": "Essa delícia aveludada combina a suavidade do pudim tradicional com a intensidade marcante do café. O amargor sutil se mistura com a doçura do leite condensado, criando uma harmonia perfeita.",
+  "Pudim Nordestino de Maracujá": "Uma sobremesa cremosa e refrescante, feita com a polpa do maracujá, trazendo um sabor tropical levemente ácido. Textura suave e equilibrada entre doce e azedo.",
+  "Pudim Arretado de Morango": "Um pudim cremoso de chocolate branco coberto com uma deliciosa calda de morango, combinando intensidade e frescor.",
+  "Pudim Doce Cangaço": "Uma elegante interpretação do clássico pudim, unindo queijo e goiabada em uma combinação irresistível."
+};
+
+// Elementos do modal de preview
+const previewModal = document.getElementById("previewModal");
+const previewModalClose = document.getElementById("previewModalClose");
+const previewModalImg = document.getElementById("previewModalImg");
+const previewModalTitle = document.getElementById("previewModalTitle");
+const previewModalDesc = document.getElementById("previewModalDesc");
+const previewModalAdd = document.getElementById("previewModalAdd");
+const previewModalCancel = document.getElementById("previewModalCancel");
+
+let currentPreviewIndex = null;
+
+// ===== FUNÇÕES DO MODAL DE PREVIEW =====
+function abrirPreviewModal(index) {
+  const item = cardapio[index];
+  if (!item || !previewModal) return;
+  
+  currentPreviewIndex = index;
+  
+  previewModalImg.src = item.imagem || 'img/placeholder.jpg';
+  previewModalImg.alt = item.nome;
+  previewModalTitle.textContent = item.nome;
+  
+  // Busca descrição ou usa padrão
+  const descricao = pudimDescricoes[item.nome] || "Um delicioso pudim artesanal, feito com ingredientes selecionados e muito carinho.";
+  previewModalDesc.textContent = descricao;
+  
+  previewModal.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function fecharPreviewModal() {
+  previewModal?.classList.remove("active");
+  document.body.style.overflow = "";
+  currentPreviewIndex = null;
+}
+
+// Event listeners do modal de preview
+previewModalClose?.addEventListener("click", fecharPreviewModal);
+previewModalCancel?.addEventListener("click", fecharPreviewModal);
+
+previewModal?.addEventListener("click", (e) => {
+  if (e.target === previewModal) {
+    fecharPreviewModal();
+  }
+});
+
+previewModalAdd?.addEventListener("click", () => {
+  if (currentPreviewIndex !== null) {
+    adicionarAoCarrinho(currentPreviewIndex);
+    fecharPreviewModal();
+  }
+});
+
+// Fechar com ESC
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && previewModal?.classList.contains("active")) {
+    fecharPreviewModal();
+  }
+});
+
 // ===== MOBILE SIDEBAR CONTROLS =====
 function abrirCarrinhoMobile() {
   cartSidebar?.classList.add("active");
@@ -220,12 +295,33 @@ if (cardapioContainer) {
     }
   });
 
-  // Event listener para adicionar ao carrinho
+  // Event listener para cliques no cardápio
   cardapioContainer.addEventListener('click', function(e) {
+    // Se clicou no botão de adicionar
     const btn = e.target.closest('.product-add-btn');
     if (btn) {
+      e.stopPropagation();
       const index = parseInt(btn.dataset.index);
       adicionarAoCarrinho(index);
+      return;
+    }
+    
+    // Se clicou em elementos interativos (input, select), não abre o modal
+    if (e.target.closest('.product-card-actions') || 
+        e.target.closest('.product-size-select') ||
+        e.target.tagName === 'INPUT' || 
+        e.target.tagName === 'SELECT') {
+      return;
+    }
+    
+    // Se clicou no card, abre o modal de preview
+    const card = e.target.closest('.product-card');
+    if (card) {
+      const addBtn = card.querySelector('.product-add-btn');
+      if (addBtn) {
+        const index = parseInt(addBtn.dataset.index);
+        abrirPreviewModal(index);
+      }
     }
   });
 }
