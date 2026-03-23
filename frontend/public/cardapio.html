@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -45,7 +45,7 @@
         border-color: #fca5a5;
         box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
       }
-      
+
       .status-badge.aberto .status-label {
         color: #065f46;
         font-weight: 600;
@@ -76,7 +76,8 @@
           transform: scale(1);
           opacity: 0.75;
         }
-        75%, 100% {
+        75%,
+        100% {
           transform: scale(2);
           opacity: 0;
         }
@@ -160,8 +161,13 @@
 
       /* Pulse animation para contador */
       @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.15); }
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.15);
+        }
       }
       .cart-count-pulse {
         animation: pulse 0.3s ease;
@@ -187,7 +193,7 @@
       .product-card:active {
         transform: translateY(-1px);
       }
-      
+
       .product-card-image {
         position: relative;
         width: 100%;
@@ -208,7 +214,7 @@
         transform: scale(1.05);
       }
       .product-card-image::before {
-        content: 'Ver detalhes';
+        content: "Ver detalhes";
         position: absolute;
         bottom: 0.75rem;
         left: 50%;
@@ -228,14 +234,14 @@
         opacity: 1;
         transform: translateX(-50%) translateY(0);
       }
-      
+
       .product-card-body {
         display: flex;
         flex-direction: column;
         flex: 1;
         padding: 0.625rem;
       }
-      
+
       .product-card-title {
         font-size: 0.8rem;
         font-weight: 600;
@@ -248,26 +254,26 @@
         overflow: hidden;
         margin-bottom: 0.25rem;
       }
-      
+
       .product-card-meta {
         font-size: 0.65rem;
         color: #9ca3af;
         margin-bottom: 0.25rem;
       }
-      
+
       .product-card-price {
         font-size: 0.95rem;
         font-weight: 700;
         color: #a47551;
         margin-bottom: 0.5rem;
       }
-      
+
       .product-card-actions {
         display: flex;
         gap: 0.375rem;
         margin-top: auto;
       }
-      
+
       .product-qty-input {
         width: 2.25rem;
         text-align: center;
@@ -285,7 +291,7 @@
         border-color: #a47551;
         box-shadow: 0 0 0 2px rgba(164, 117, 81, 0.15);
       }
-      
+
       .product-size-select {
         width: 100%;
         padding: 0.4rem 0.5rem;
@@ -303,7 +309,7 @@
         border-color: #a47551;
         box-shadow: 0 0 0 2px rgba(164, 117, 81, 0.15);
       }
-      
+
       .product-add-btn {
         flex: 1;
         display: flex;
@@ -337,7 +343,7 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 0.625rem;
       }
-      
+
       @media (min-width: 640px) {
         .products-grid {
           gap: 1rem;
@@ -380,14 +386,14 @@
           height: 1rem;
         }
       }
-      
+
       @media (min-width: 768px) {
         .products-grid {
           grid-template-columns: repeat(3, 1fr);
           gap: 1.25rem;
         }
       }
-      
+
       @media (min-width: 1024px) {
         .products-grid {
           grid-template-columns: repeat(3, 1fr);
@@ -412,7 +418,7 @@
       }
 
       /* ===== MOBILE SIDEBAR CART ===== */
-      
+
       /* FAB (Floating Action Button) do carrinho */
       .cart-fab {
         position: fixed;
@@ -466,7 +472,7 @@
         transform: scale(0);
         opacity: 0;
       }
-      
+
       /* Overlay backdrop */
       .cart-overlay {
         position: fixed;
@@ -482,7 +488,7 @@
         opacity: 1;
         visibility: visible;
       }
-      
+
       /* Bottom Sheet Cart (estilo moderno) */
       .cart-sidebar {
         position: fixed;
@@ -503,10 +509,10 @@
       .cart-sidebar.active {
         transform: translateY(0);
       }
-      
+
       /* Handle bar (arrastar) */
       .cart-sidebar::before {
-        content: '';
+        content: "";
         position: absolute;
         top: 0.5rem;
         left: 50%;
@@ -516,7 +522,7 @@
         background: #d1d5db;
         border-radius: 2px;
       }
-      
+
       .cart-sidebar-header {
         display: flex;
         align-items: center;
@@ -554,7 +560,7 @@
         border-top: 1px solid #f3f4f6;
         background: #fafafa;
       }
-      
+
       /* Inputs do footer mobile */
       .cart-sidebar-footer input {
         font-size: 0.875rem;
@@ -586,7 +592,7 @@
           display: flex;
         }
       }
-      
+
       /* Tablets: bottom sheet mais compacto */
       @media (min-width: 640px) and (max-width: 1023px) {
         .cart-sidebar {
@@ -605,7 +611,7 @@
           max-height: 40vh;
         }
       }
-      
+
       /* Mobile pequeno: ajustes de header */
       @media (max-width: 640px) {
         header {
@@ -659,10 +665,18 @@
       .modal-overlay.active .modal-section {
         animation: modalSectionIn 0.4s ease forwards;
       }
-      .modal-overlay.active .modal-section:nth-child(1) { animation-delay: 0.1s; }
-      .modal-overlay.active .modal-section:nth-child(2) { animation-delay: 0.2s; }
-      .modal-overlay.active .modal-section:nth-child(3) { animation-delay: 0.3s; }
-      .modal-overlay.active .modal-section:nth-child(4) { animation-delay: 0.4s; }
+      .modal-overlay.active .modal-section:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      .modal-overlay.active .modal-section:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .modal-overlay.active .modal-section:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      .modal-overlay.active .modal-section:nth-child(4) {
+        animation-delay: 0.4s;
+      }
 
       @keyframes modalSectionIn {
         to {
@@ -682,33 +696,38 @@
 
       /* ===== SEÇÃO SOBRE NÓS ===== */
       .sobre-nos-section {
-        background: linear-gradient(135deg, #fef7ed 0%, #fdf2e3 50%, #f8e7d1 100%);
-        border-radius: 1.5rem;
-        border: 1px solid #e2cdb0;
-        padding: 2.5rem 2rem;
-        margin-bottom: 2rem;
+        background: transparent;
+        padding: 2rem 1.5rem 2.5rem;
+        margin-bottom: 1.5rem;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(164, 117, 81, 0.1);
       }
       .sobre-nos-section::before {
-        content: '';
+        content: "";
         position: absolute;
         top: -50%;
         right: -20%;
         width: 300px;
         height: 300px;
-        background: radial-gradient(circle, rgba(164, 117, 81, 0.08) 0%, transparent 70%);
+        background: radial-gradient(
+          circle,
+          rgba(164, 117, 81, 0.06) 0%,
+          transparent 70%
+        );
         border-radius: 50%;
       }
       .sobre-nos-section::after {
-        content: '';
+        content: "";
         position: absolute;
         bottom: -30%;
         left: -10%;
         width: 200px;
         height: 200px;
-        background: radial-gradient(circle, rgba(228, 189, 140, 0.15) 0%, transparent 70%);
+        background: radial-gradient(
+          circle,
+          rgba(228, 189, 140, 0.1) 0%,
+          transparent 70%
+        );
         border-radius: 50%;
       }
       .sobre-nos-content {
@@ -732,7 +751,6 @@
         font-weight: 700;
         color: #a47551;
         margin-bottom: 0.75rem;
-        text-shadow: 0 1px 2px rgba(255,255,255,0.5);
       }
       .sobre-nos-text {
         color: #5c4033;
@@ -745,15 +763,14 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: white;
+        background: rgba(255, 255, 255, 0.7);
         padding: 0.5rem 1rem;
         border-radius: 2rem;
         font-size: 0.8rem;
         font-weight: 600;
         color: #a47551;
         margin-top: 1.25rem;
-        box-shadow: 0 2px 8px rgba(164, 117, 81, 0.1);
-        border: 1px solid #e2cdb0;
+        backdrop-filter: blur(4px);
       }
 
       /* ===== MODAL PREVIEW DO PUDIM ===== */
@@ -803,7 +820,7 @@
         object-fit: cover;
       }
       .preview-modal-image::after {
-        content: '';
+        content: "";
         position: absolute;
         bottom: 0;
         left: 0;
@@ -824,7 +841,7 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
         transition: all 0.2s ease;
         z-index: 10;
       }
@@ -1035,9 +1052,7 @@
           alt="Logo Papudim"
           class="w-16 h-16 mx-auto mb-1 rounded-full shadow-lg border-4 border-[#e2cdb0] bg-white"
         />
-        <h1 class="text-2xl font-bold text-[#a47551] drop-shadow">
-          Papudim
-        </h1>
+        <h1 class="text-2xl font-bold text-[#a47551] drop-shadow">Papudim</h1>
         <p class="text-xs text-[#a47551]">
           Pudins artesanais feitos com carinho
         </p>
@@ -1049,8 +1064,12 @@
         class="status-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-[#f5ebe0] border border-[#e2cdb0] shadow-sm transition-all duration-300"
       >
         <span class="status-indicator relative flex h-2 w-2">
-          <span class="status-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
-          <span class="status-dot relative inline-flex h-2 w-2 rounded-full"></span>
+          <span
+            class="status-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+          ></span>
+          <span
+            class="status-dot relative inline-flex h-2 w-2 rounded-full"
+          ></span>
         </span>
         <span class="status-label text-[#5c4033]">Verificando...</span>
       </div>
@@ -1062,20 +1081,35 @@
         class="carrinho-aside w-full lg:w-1/3 bg-white/95 rounded-2xl shadow-lg p-4 sm:p-5 mb-4 lg:mb-0 animate-fade-in lg:max-h-[85vh] border border-[#e2cdb0]/50"
       >
         <!-- Header do carrinho -->
-        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-[#e2cdb0]">
-          <svg class="w-5 h-5 text-[#a47551]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        <div
+          class="flex items-center gap-2 mb-4 pb-3 border-b border-[#e2cdb0]"
+        >
+          <svg
+            class="w-5 h-5 text-[#a47551]"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            />
           </svg>
-          <h2 class="text-lg font-semibold text-[#3e2c23]">
-            Carrinho
-          </h2>
-          <span id="cartCount" class="ml-auto bg-[#a47551] text-white text-xs font-bold px-2 py-0.5 rounded-full transition-all">
+          <h2 class="text-lg font-semibold text-[#3e2c23]">Carrinho</h2>
+          <span
+            id="cartCount"
+            class="ml-auto bg-[#a47551] text-white text-xs font-bold px-2 py-0.5 rounded-full transition-all"
+          >
             0
           </span>
         </div>
 
         <!-- Itens do carrinho (área com scroll) -->
-        <div class="cart-items-container max-h-[280px] lg:max-h-[320px] overflow-y-auto mb-4 -mx-2 px-2">
+        <div
+          class="cart-items-container max-h-[280px] lg:max-h-[320px] overflow-y-auto mb-4 -mx-2 px-2"
+        >
           <ul id="carrinho" class="space-y-2"></ul>
         </div>
 
@@ -1084,7 +1118,10 @@
           <!-- Total -->
           <div class="flex items-center justify-between py-2 px-1">
             <span class="text-sm font-medium text-[#3e2c23]">Total</span>
-            <span id="cartTotal" class="text-lg font-bold text-[#a47551] number-flow">
+            <span
+              id="cartTotal"
+              class="text-lg font-bold text-[#a47551] number-flow"
+            >
               R$ 0,00
             </span>
           </div>
@@ -1123,7 +1160,9 @@
             class="w-full bg-[#a47551] hover:bg-[#916546] disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg flex items-center justify-center gap-2"
           >
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              <path
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"
+              />
             </svg>
             Enviar Pedido
           </button>
@@ -1139,17 +1178,31 @@
         <section class="sobre-nos-section animate-fade-in">
           <div class="sobre-nos-content text-center">
             <div class="sobre-nos-icon">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              <svg
+                class="w-8 h-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                />
               </svg>
             </div>
-            <h2 class="sobre-nos-title">Feito com Amor no Nordeste</h2>
+            <h2 class="sobre-nos-title">Feito com Amor</h2>
             <p class="sobre-nos-text">
-              Uma pequena empresa nordestina de pudins, nascida em novembro de 2024, onde o sabor autêntico é feito com amor, direto da cozinha de casa para sua mesa.
+              Uma pequena empresa nordestina de pudins, nascida em novembro de
+              2024, onde o sabor autêntico é feito com amor, direto da cozinha
+              de casa para sua mesa.
             </p>
             <div class="sobre-nos-badge">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                <path
+                  d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+                />
               </svg>
               Salvador, Bahia
             </div>
@@ -1188,11 +1241,20 @@
     </a>
 
     <!-- ===== MOBILE CART SIDEBAR ===== -->
-    
+
     <!-- FAB do Carrinho (Mobile) -->
     <button id="cartFab" class="cart-fab" aria-label="Abrir carrinho">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+      <svg
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+        />
       </svg>
       <span id="cartFabBadge" class="cart-fab-badge" data-count="0">0</span>
     </button>
@@ -1205,15 +1267,43 @@
       <!-- Header -->
       <div class="cart-sidebar-header">
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-[#a47551]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          <svg
+            class="w-4 h-4 text-[#a47551]"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            />
           </svg>
           <h2 class="text-base font-semibold text-[#3e2c23]">Carrinho</h2>
-          <span id="cartSidebarCount" class="bg-[#a47551] text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">0</span>
+          <span
+            id="cartSidebarCount"
+            class="bg-[#a47551] text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center"
+            >0</span
+          >
         </div>
-        <button id="cartSidebarClose" class="cart-sidebar-close" aria-label="Fechar carrinho">
-          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <button
+          id="cartSidebarClose"
+          class="cart-sidebar-close"
+          aria-label="Fechar carrinho"
+        >
+          <svg
+            class="w-4 h-4 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -1227,7 +1317,9 @@
       <div class="cart-sidebar-footer space-y-2">
         <div class="flex items-center justify-between py-1">
           <span class="text-sm font-medium text-[#3e2c23]">Total</span>
-          <span id="cartTotalMobile" class="text-lg font-bold text-[#a47551]">R$ 0,00</span>
+          <span id="cartTotalMobile" class="text-lg font-bold text-[#a47551]"
+            >R$ 0,00</span
+          >
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -1265,7 +1357,9 @@
           class="w-full bg-[#a47551] hover:bg-[#916546] disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl transition-all duration-200 text-sm font-semibold shadow-md flex items-center justify-center gap-2"
         >
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            <path
+              d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"
+            />
           </svg>
           Enviar Pedido
         </button>
@@ -1277,24 +1371,52 @@
       id="modalResumo"
       class="modal-overlay fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     >
-      <div class="modal-content bg-[#fdf6e3] rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div
+        class="modal-content bg-[#fdf6e3] rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+      >
         <!-- Header com ilustração -->
         <div class="modal-section text-center pt-6 pb-4 px-6">
-          <div class="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-br from-[#e2cdb0] to-[#d4a574] flex items-center justify-center shadow-lg">
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div
+            class="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-br from-[#e2cdb0] to-[#d4a574] flex items-center justify-center shadow-lg"
+          >
+            <svg
+              class="w-10 h-10 text-white"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <h2 class="text-xl font-bold text-[#a47551]">Confirme seu Pedido</h2>
-          <p class="text-sm text-gray-500 mt-1">Revise os detalhes antes de enviar</p>
+          <p class="text-sm text-gray-500 mt-1">
+            Revise os detalhes antes de enviar
+          </p>
         </div>
 
         <!-- Itens do pedido -->
         <div class="modal-section px-6 mb-4">
           <div class="info-card">
-            <h3 class="text-sm font-semibold text-[#3e2c23] mb-2 flex items-center gap-2">
-              <svg class="w-4 h-4 text-[#a47551]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            <h3
+              class="text-sm font-semibold text-[#3e2c23] mb-2 flex items-center gap-2"
+            >
+              <svg
+                class="w-4 h-4 text-[#a47551]"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
               </svg>
               Itens do Pedido
             </h3>
@@ -1307,9 +1429,21 @@
         <!-- Resumo do pedido -->
         <div class="modal-section px-6 mb-4">
           <div class="info-card">
-            <h3 class="text-sm font-semibold text-[#3e2c23] mb-2 flex items-center gap-2">
-              <svg class="w-4 h-4 text-[#a47551]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <h3
+              class="text-sm font-semibold text-[#3e2c23] mb-2 flex items-center gap-2"
+            >
+              <svg
+                class="w-4 h-4 text-[#a47551]"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
               </svg>
               Resumo
             </h3>
@@ -1326,7 +1460,9 @@
             class="w-full bg-gradient-to-r from-[#a47551] to-[#916546] hover:from-[#916546] hover:to-[#7a5639] text-white px-6 py-3.5 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              <path
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"
+              />
             </svg>
             Enviar pelo WhatsApp
           </button>
@@ -1347,9 +1483,22 @@
     <div id="previewModal" class="preview-modal-overlay">
       <div class="preview-modal">
         <div class="preview-modal-image">
-          <button id="previewModalClose" class="preview-modal-close" aria-label="Fechar">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          <button
+            id="previewModalClose"
+            class="preview-modal-close"
+            aria-label="Fechar"
+          >
+            <svg
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
           <img id="previewModalImg" src="" alt="" />
@@ -1358,13 +1507,29 @@
           <h3 id="previewModalTitle" class="preview-modal-title"></h3>
           <p id="previewModalDesc" class="preview-modal-description"></p>
           <div class="preview-modal-footer">
-            <button id="previewModalAdd" class="preview-modal-btn preview-modal-btn-primary">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            <button
+              id="previewModalAdd"
+              class="preview-modal-btn preview-modal-btn-primary"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
               Adicionar
             </button>
-            <button id="previewModalCancel" class="preview-modal-btn preview-modal-btn-secondary">
+            <button
+              id="previewModalCancel"
+              class="preview-modal-btn preview-modal-btn-secondary"
+            >
               Fechar
             </button>
           </div>
