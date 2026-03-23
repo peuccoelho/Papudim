@@ -113,9 +113,14 @@ function verificarHorarioFuncionamento() {
   const aberto = diaSemana >= 1 && diaSemana <= 5 && hora >= 9 && hora < 17;
 
   if (statusDiv) {
-    statusDiv.textContent = aberto ? "Aberto agora" : "Fechado no momento";
-    statusDiv.classList.remove("bg-gray-400", "bg-green-600", "bg-red-600");
-    statusDiv.classList.add(aberto ? "bg-green-600" : "bg-red-600");
+    const statusLabel = statusDiv.querySelector('.status-label');
+    
+    statusDiv.classList.remove("aberto", "fechado");
+    statusDiv.classList.add(aberto ? "aberto" : "fechado");
+    
+    if (statusLabel) {
+      statusLabel.textContent = aberto ? "Aberto" : "Fechado";
+    }
   }
 
   return aberto;

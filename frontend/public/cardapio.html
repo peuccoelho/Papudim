@@ -31,6 +31,57 @@
         }
       }
 
+      /* ===== STATUS BADGE - Aberto/Fechado ===== */
+      .status-badge {
+        backdrop-filter: blur(8px);
+      }
+      .status-badge.aberto {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-color: #6ee7b7;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+      }
+      .status-badge.fechado {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border-color: #fca5a5;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+      }
+      
+      .status-badge.aberto .status-label {
+        color: #065f46;
+        font-weight: 600;
+      }
+      .status-badge.fechado .status-label {
+        color: #991b1b;
+        font-weight: 600;
+      }
+
+      /* Indicador com animação ping */
+      .status-badge.aberto .status-ping {
+        background-color: #10b981;
+        animation: statusPing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+      .status-badge.aberto .status-dot {
+        background-color: #10b981;
+      }
+      .status-badge.fechado .status-ping {
+        background-color: #ef4444;
+        animation: none;
+      }
+      .status-badge.fechado .status-dot {
+        background-color: #ef4444;
+      }
+
+      @keyframes statusPing {
+        0% {
+          transform: scale(1);
+          opacity: 0.75;
+        }
+        75%, 100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
+
       /* Animações do carrinho */
       @keyframes cartItemIn {
         from {
@@ -555,10 +606,7 @@
         #status {
           margin-top: 0.5rem;
           align-self: center;
-          width: 100%;
-          text-align: center;
-          font-size: 0.95rem;
-          padding: 0.5rem 0.5rem;
+          justify-content: center;
         }
       }
 
@@ -724,9 +772,13 @@
       <!-- Status de funcionamento -->
       <div
         id="status"
-        class="text-white px-4 py-2 rounded-lg text-sm bg-[#916546]"
+        class="status-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-[#f5ebe0] border border-[#e2cdb0] shadow-sm transition-all duration-300"
       >
-        Verificando status...
+        <span class="status-indicator relative flex h-2 w-2">
+          <span class="status-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+          <span class="status-dot relative inline-flex h-2 w-2 rounded-full"></span>
+        </span>
+        <span class="status-label text-[#5c4033]">Verificando...</span>
       </div>
     </header>
 
