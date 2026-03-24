@@ -127,7 +127,7 @@
           <thead>
             <tr class="bg-[#f3e8df] text-[#a47551]">
               <th class="py-2 px-3 text-left">Cliente</th>
-              <th class="py-2 px-3 text-left">E-mail</th>
+              <th class="py-2 px-3 text-left">Endereço</th>
               <th class="py-2 px-3 text-left">Celular</th>
               <th class="py-2 px-3 text-left">Total</th>
               <th class="py-2 px-3 text-left">Status</th>
@@ -271,7 +271,7 @@
             linha.className = `hover:bg-[#f3e8df] transition ${corLinha}`;
             linha.innerHTML = `
               <td class="py-2 px-3">${escapeHTML(pedido.cliente)}</td>
-              <td class="py-2 px-3">${escapeHTML(pedido.email || "-")}</td>
+              <td class="py-2 px-3">${escapeHTML(pedido.endereco || "-")}</td>
               <td class="py-2 px-3">${escapeHTML(pedido.celular || "-")}</td>
               <td class="py-2 px-3">R$ ${pedido.total.toFixed(2)}</td>
               <td class="py-2 px-3">
@@ -341,7 +341,7 @@
       }
 
       function exportarCSV() {
-        let csv = "Cliente,E-mail,Celular,Total,Status,Itens,Data\n";
+        let csv = "Cliente,Endereço,Celular,Total,Status,Itens,Data\n";
         todosPedidos.forEach((pedido) => {
           const data = new Date(
             Number(pedido.id?.split("-")[1]) || 0
@@ -349,7 +349,7 @@
           const itens = pedido.itens
             .map((i) => `${i.nome} x${i.quantidade}`)
             .join(" / ");
-          csv += `${pedido.cliente},${pedido.email || "-"},${
+          csv += `${pedido.cliente},${pedido.endereco || "-"},${
             pedido.celular || "-"
           },${pedido.total},${pedido.status},"${itens}",${data}\n`;
         });
@@ -418,7 +418,7 @@
       }
 
       function copiarMensagemPedido(nome, celular) {
-        const mensagem = `Olá, ${nome}! 😊\n\nSeu pedido Papudim está pronto para retirada!\n\nEndereço: R. Luís Negreiro, 701 - Luiz Anselmo, Salvador - BA, 40265-090\n\nAgradecemos pela sua preferência. Qualquer dúvida, estamos à disposição!\n\nBom apetite! 🍮`;
+        const mensagem = `Olá, ${nome}! 😊\n\nSeu pedido Papudim está pronto! 🍮\n\nIremos entrar em contato em breve para informar sobre a entrega.\n\nAgradecemos pela sua preferência. Qualquer dúvida, estamos à disposição!`;
         const url = `https://wa.me/55${celular}?text=${encodeURIComponent(
           mensagem
         )}`;
