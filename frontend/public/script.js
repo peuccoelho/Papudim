@@ -712,10 +712,7 @@ Aguardo confirmação para finalizar o pedido! 😊`;
         const numeroWhatsApp = "5571986961217";
         const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
         
-        // Abre WhatsApp
-        window.open(urlWhatsApp, "_blank");
-        
-        // Limpa o carrinho
+        // Limpa o carrinho antes de redirecionar
         carrinho.length = 0;
         atualizarCarrinho();
         nomeClienteInput.value = "";
@@ -723,7 +720,12 @@ Aguardo confirmação para finalizar o pedido! 😊`;
         numeroClienteInput.value = "";
         celularClienteInput.value = "";
         
-        exibirToast("Pedido enviado! Complete pelo WhatsApp.");
+        exibirToast("Pedido enviado! Redirecionando ao WhatsApp...");
+        
+        // Usa location.href para compatibilidade com Safari (window.open é bloqueado após async)
+        setTimeout(() => {
+          window.location.href = urlWhatsApp;
+        }, 500);
       } else {
         alert("Erro ao processar pedido.");
       }
