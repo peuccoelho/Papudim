@@ -28,35 +28,18 @@ import { cardapio, buscarPreco } from "../data/cardapio.js";
 export async function criarPedido(req, res) {
   console.log("Recebido pedido:", req.body); 
   const { pedidosCollection } = req.app.locals;
-  // ASAAS DESATIVADO
-  // const { pedidosCollection, ASAAS_API, ASAAS_ACCESS_TOKEN } = req.app.locals;
   const pedido = req.body;
 
-  // validação 
+  // validação - apenas nome do cliente e itens são obrigatórios
   if (
     !pedido.cliente ||
-    !pedido.endereco ||
-    !pedido.celular ||
     !Array.isArray(pedido.itens) ||
     pedido.itens.length === 0
   ) {
     return res.status(400).json({ erro: "Dados do pedido inválidos." });
   }
 
-  if (pedido.endereco.length < 5) {
-    return res.status(400).json({ erro: "Endereço inválido." });
-  }
-  if (!/^\d{10,11}$/.test(pedido.celular)) {
-    return res.status(400).json({ erro: "Celular inválido. Use DDD + número, só números." });
-  }
-
   pedido.cliente = sanitizeInput(pedido.cliente);
-  pedido.endereco = sanitizeInput(pedido.endereco);
-  pedido.celular = sanitizeInput(pedido.celular.replace(/\D/g, "")); 
-
-  if (!/^\d{11}$/.test(pedido.celular)) {
-    return res.status(400).json({ erro: "Celular inválido. Use DDD + número, só números (ex: 71999999999)." });
-  }
 
   let totalCalculado = 0;
   const itensSanitizados = [];
@@ -101,45 +84,14 @@ export async function criarPedido(req, res) {
   console.log("Pedido salvo no Firebase com sucesso");
 
 
-  const { cliente, endereco, celular, total } = pedido;
-  // ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
-  // const { cliente, email, celular, total, pagamento, parcelas } = pedido;
+  const { cliente, total } = pedido;
 
   try {
-    // ASAAS DESATIVADO - Agora retornamos dados para gerar link WhatsApp no frontend
-    // // cliente Asaas
-    // const clienteData = await criarClienteAsaas(
-    //   ASAAS_API,
-    //   ASAAS_ACCESS_TOKEN,
-    //   cliente,
-    //   email,
-    //   celular
-    // );
-
-    // // cobrança Asaas
-    // const cobranca = await criarCobrancaAsaas(
-    //   ASAAS_API,
-    //   ASAAS_ACCESS_TOKEN,
-    //   clienteData.id,
-    //   pagamento,
-    //   total,
-    //   pedidoId,
-    //   clienteData.name,
-    //   pedido.parcelas 
-    // );
-
-    // res.json({
-    //   url: cobranca.invoiceUrl,
-    //   pedidoId: pedidoId
-    // });
-
     // Retorna dados do pedido para o frontend gerar link WhatsApp
     res.json({
       sucesso: true,
       pedidoId: pedidoId,
       cliente: cliente,
-      endereco: pedido.endereco,
-      celular: celular,
       total: total,
       itens: itensSanitizados
     });

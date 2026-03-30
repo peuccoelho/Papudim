@@ -9,9 +9,6 @@ let ultimoTotal = 0;
 const cardapioContainer = document.getElementById("cardapio");
 const carrinhoContainer = document.getElementById("carrinho");
 const nomeClienteInput = document.getElementById("nomeCliente");
-const ruaClienteInput = document.getElementById("ruaCliente");
-const numeroClienteInput = document.getElementById("numeroCliente");
-const celularClienteInput = document.getElementById("celularCliente");
 const btnFinalizar = document.getElementById("finalizarPedido");
 const toggleInfo = document.getElementById("toggleInfo");
 const infoSection = document.getElementById("infoSection");
@@ -34,9 +31,6 @@ const carrinhoMobileContainer = document.getElementById("carrinhoMobile");
 const cartSidebarCount = document.getElementById("cartSidebarCount");
 const cartTotalMobile = document.getElementById("cartTotalMobile");
 const nomeClienteMobile = document.getElementById("nomeClienteMobile");
-const ruaClienteMobile = document.getElementById("ruaClienteMobile");
-const numeroClienteMobile = document.getElementById("numeroClienteMobile");
-const celularClienteMobile = document.getElementById("celularClienteMobile");
 const btnFinalizarMobile = document.getElementById("finalizarPedidoMobile");
 
 let pedidoParaEnviar = null;
@@ -145,33 +139,6 @@ function sincronizarCampos(origem, destino) {
   input?.addEventListener("input", () => {
     if (input === nomeClienteInput) sincronizarCampos(nomeClienteInput, nomeClienteMobile);
     else sincronizarCampos(nomeClienteMobile, nomeClienteInput);
-    validarFormulario();
-    atualizarBarraProgresso();
-  });
-});
-
-[ruaClienteInput, ruaClienteMobile].forEach(input => {
-  input?.addEventListener("input", () => {
-    if (input === ruaClienteInput) sincronizarCampos(ruaClienteInput, ruaClienteMobile);
-    else sincronizarCampos(ruaClienteMobile, ruaClienteInput);
-    validarFormulario();
-    atualizarBarraProgresso();
-  });
-});
-
-[numeroClienteInput, numeroClienteMobile].forEach(input => {
-  input?.addEventListener("input", () => {
-    if (input === numeroClienteInput) sincronizarCampos(numeroClienteInput, numeroClienteMobile);
-    else sincronizarCampos(numeroClienteMobile, numeroClienteInput);
-    validarFormulario();
-    atualizarBarraProgresso();
-  });
-});
-
-[celularClienteInput, celularClienteMobile].forEach(input => {
-  input?.addEventListener("input", () => {
-    if (input === celularClienteInput) sincronizarCampos(celularClienteInput, celularClienteMobile);
-    else sincronizarCampos(celularClienteMobile, celularClienteInput);
     validarFormulario();
     atualizarBarraProgresso();
   });
@@ -570,39 +537,20 @@ btnFinalizar.addEventListener("click", async (e) => {
   e.preventDefault();
 
   const nome = nomeClienteInput.value.trim();
-  const rua = ruaClienteInput.value.trim();
-  const numero = numeroClienteInput.value.trim();
-  const celular = celularClienteInput.value.trim();
-  // ASAAS DESATIVADO - não precisa mais de forma de pagamento
-  // const pagamento = formaPagamentoInput.value;
-  // const parcelas = parseInt(document.getElementById("parcelas")?.value || "1");
   const totalUnidades = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
 
-  if (!nome || !rua || !numero || !celular) {
-    exibirToast("Preencha todos os campos antes de finalizar o pedido.");
+  if (!nome) {
+    exibirToast("Preencha seu nome antes de finalizar o pedido.");
     return;
   }
-  if (rua.length < 3) {
-    exibirToast("Digite o nome da rua completo.");
-    return;
-  }
-  if (!/^\d{10,15}$/.test(celular.replace(/\D/g, ""))) {
-    exibirToast("Digite um número de celular válido (apenas números, com DDD).");
-    return;
-  }
-  
 
   const total = Number(
     carrinho.reduce((sum, item) => sum + item.preco * item.quantidade, 0).toFixed(2)
   );
 
-
-  
   pedidoParaEnviar = {
     id: "pedido-" + Date.now(),
     cliente: nome,
-    endereco: `${rua}, ${numero}`,
-    celular: celular.replace(/\D/g, ""),
     itens: carrinho.map(item => ({
       produtoId: item.produtoId,
       nome: item.nome,
@@ -612,9 +560,6 @@ btnFinalizar.addEventListener("click", async (e) => {
       imagem: item.imagem || ''
     })),
     total
-    // ASAAS DESATIVADO
-    // pagamento,
-    // parcelas: pagamento === "CREDIT_CARD" ? parcelas : undefined
   };
 
   // Gerar HTML dos itens do pedido
@@ -642,14 +587,6 @@ btnFinalizar.addEventListener("click", async (e) => {
     <div class="summary-row">
       <span class="summary-label">Cliente</span>
       <span class="summary-value">${escapeHTML(nome)}</span>
-    </div>
-    <div class="summary-row">
-      <span class="summary-label">Endereço</span>
-      <span class="summary-value">${escapeHTML(rua)}, nº ${escapeHTML(numero)}</span>
-    </div>
-    <div class="summary-row">
-      <span class="summary-label">Celular</span>
-      <span class="summary-value">${escapeHTML(celular)}</span>
     </div>
     <div class="summary-row">
       <span class="summary-label">Itens</span>
@@ -698,8 +635,6 @@ btnConfirmarResumo.addEventListener("click", async () => {
         const mensagem = `🍮 *Novo Pedido - Papudim*
 
 *Cliente:* ${data.cliente}
-*Endereço:* ${data.endereco}
-*Celular:* ${data.celular}
 
 *Itens:*
 ${itensTexto}
@@ -716,9 +651,7 @@ Aguardo confirmação para finalizar o pedido! 😊`;
         carrinho.length = 0;
         atualizarCarrinho();
         nomeClienteInput.value = "";
-        ruaClienteInput.value = "";
-        numeroClienteInput.value = "";
-        celularClienteInput.value = "";
+        if (nomeClienteMobile) nomeClienteMobile.value = "";
         
         exibirToast("Pedido enviado! Redirecionando ao WhatsApp...");
         
@@ -797,11 +730,8 @@ function exibirToast(msg) {
 function validarFormulario() {
   // Pegar valores de qualquer um dos formulários (são sincronizados)
   const nome = (nomeClienteInput?.value || nomeClienteMobile?.value || "").trim();
-  const rua = (ruaClienteInput?.value || ruaClienteMobile?.value || "").trim();
-  const numero = (numeroClienteInput?.value || numeroClienteMobile?.value || "").trim();
-  const celular = (celularClienteInput?.value || celularClienteMobile?.value || "").trim();
 
-  const formularioValido = nome && rua && numero && celular && carrinho.length > 0;
+  const formularioValido = nome && carrinho.length > 0;
   
   // Desabilitar/habilitar ambos os botões
   if (btnFinalizar) btnFinalizar.disabled = !formularioValido;
@@ -810,15 +740,9 @@ function validarFormulario() {
 
 function atualizarBarraProgresso() {
   const nomePreenchido = (nomeClienteInput?.value || nomeClienteMobile?.value || "").trim() !== "";
-  const ruaPreenchida = (ruaClienteInput?.value || ruaClienteMobile?.value || "").trim() !== "";
-  const numeroPreenchido = (numeroClienteInput?.value || numeroClienteMobile?.value || "").trim() !== "";
-  const celularPreenchido = (celularClienteInput?.value || celularClienteMobile?.value || "").trim() !== "";
   const progresso =
-    (carrinho.length > 0 ? 20 : 0) +
-    (nomePreenchido ? 20 : 0) +
-    (ruaPreenchida ? 20 : 0) +
-    (numeroPreenchido ? 20 : 0) +
-    (celularPreenchido ? 20 : 0);
+    (carrinho.length > 0 ? 50 : 0) +
+    (nomePreenchido ? 50 : 0);
   if (barraProgresso) barraProgresso.style.width = `${progresso}%`;
 }
 
@@ -826,9 +750,6 @@ function atualizarBarraProgresso() {
 btnFinalizarMobile?.addEventListener("click", (e) => {
   // Sincronizar campos mobile → desktop antes de disparar
   if (nomeClienteMobile && nomeClienteInput) nomeClienteInput.value = nomeClienteMobile.value;
-  if (ruaClienteMobile && ruaClienteInput) ruaClienteInput.value = ruaClienteMobile.value;
-  if (numeroClienteMobile && numeroClienteInput) numeroClienteInput.value = numeroClienteMobile.value;
-  if (celularClienteMobile && celularClienteInput) celularClienteInput.value = celularClienteMobile.value;
   
   // Disparar click no botão desktop (que tem toda a lógica)
   btnFinalizar?.click();
