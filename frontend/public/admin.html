@@ -184,39 +184,43 @@
           .replace(/'/g, "&#39;");
       }
 
-      const token = localStorage.getItem("adminToken");
-      if (!token) {
-        alert("Acesso negado!");
-        window.location.href = "/admin-login.html";
-      } else {
+      // Verificação de autenticação via cookie HttpOnly
+      // O cookie não é acessível via JS; validamos chamando uma rota protegida
+      let todosPedidos = [];
+
+      async function verificarAuth() {
         try {
-          const tokenData = JSON.parse(atob(token.split(".")[1]));
-          if (Date.now() / 1000 > tokenData.exp) {
-            alert("Sessão expirada!");
-            localStorage.removeItem("adminToken");
+          const res = await fetch(
+            "https://homepudimback.onrender.com/api/admin-pedidos",
+            { credentials: "include" }
+          );
+          if (res.status === 401 || res.status === 403) {
             window.location.href = "/admin-login.html";
+            return false;
           }
-        } catch (e) {
-          localStorage.removeItem("adminToken");
+          return true;
+        } catch (err) {
           window.location.href = "/admin-login.html";
+          return false;
         }
       }
 
-      let todosPedidos = [];
+      // Executar verificação inicial
+      verificarAuth().then((ok) => {
+        if (ok) carregarPedidos();
+      });
 
       async function carregarPedidos() {
         const res = await fetch(
           "https://homepudimback.onrender.com/api/admin-pedidos",
           {
-            headers: { Authorization: "Bearer " + token },
             credentials: "include",
           }
         );
 
         if (!res.ok) {
           if (res.status === 401 || res.status === 403) {
-            alert("Token expirado ou inválido.");
-            localStorage.removeItem("adminToken");
+            alert("Sessão expirada. Faça login novamente.");
             window.location.href = "/admin-login.html";
           } else {
             alert("Erro ao carregar pedidos. Tente novamente mais tarde.");
@@ -324,7 +328,6 @@
             `https://homepudimback.onrender.com/api/deletar-pedido/${id}`,
             {
               method: "DELETE",
-              headers: { Authorization: "Bearer " + token },
               credentials: "include",
             }
           );
@@ -361,8 +364,15 @@
         link.click();
       }
 
-      function logout() {
-        localStorage.removeItem("adminToken");
+      async function logout() {
+        try {
+          await fetch("https://homepudimback.onrender.com/api/logout", {
+            method: "POST",
+            credentials: "include",
+          });
+        } catch (e) {
+          // Ignorar erro de logout
+        }
         window.location.href = "/admin-login.html";
       }
 
@@ -424,8 +434,6 @@
         )}`;
         window.open(url, "_blank");
       }
-
-      carregarPedidos();
     </script>
     <script src="script.js"></script>
   </body>

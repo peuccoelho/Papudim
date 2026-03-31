@@ -2,23 +2,31 @@ import jwt from "jsonwebtoken";
 
 export function autenticar(req, res, next) {
   const SECRET_KEY = process.env.JWT_SECRET;
-  const authHeader = req.headers.authorization;
-  console.log("Authorization header recebido:", authHeader);
+  const cookieName = process.env.JWT_COOKIE_NAME || "adminToken";
 
-  if (!authHeader) {
-    console.warn("Token ausente");
+  let token = null;
+
+  // Prioridade: cookie HttpOnly > header Authorization
+  if (req.cookies && req.cookies[cookieName]) {
+    token = req.cookies[cookieName];
+  } else if (req.headers.authorization) {
+    const parts = req.headers.authorization.split(" ");
+    if (parts.length === 2 && parts[0] === "Bearer") {
+      token = parts[1];
+    }
+  }
+
+  if (!token) {
+    console.warn("[AUTH] Token ausente");
     return res.status(401).json({ erro: "Token ausente" });
   }
 
-  const token = authHeader.split(" ")[1];
-  console.log("Token recebido:", token);
-
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
-    console.log("Token decodificado:", decoded);
+    req.admin = decoded;
     next();
   } catch (err) {
-    console.error("Erro ao verificar token:", err);
-    res.status(403).json({ erro: "Token inválido ou expirado" });
+    console.error("[AUTH] Erro ao verificar token:", err.message);
+    return res.status(403).json({ erro: "Token inválido ou expirado" });
   }
 }

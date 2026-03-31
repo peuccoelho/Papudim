@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -98,7 +98,7 @@
         setTimeout(async () => {
           try {
             const res = await fetch(
-              `https://homepudimback.onrender.com/api/status-pedido?id=${pedidoId}`
+              `https://homepudimback.onrender.com/api/status-pedido?id=${pedidoId}`,
             );
             const dados = await res.json();
 

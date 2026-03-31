@@ -8,6 +8,8 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import admin from "firebase-admin";
 import helmet from "helmet";
+import Redis from "ioredis";
+import cookieParser from "cookie-parser";
 
 // função para manter o servidor acordado
 function manterServidorAcordado() {
@@ -42,6 +44,11 @@ admin.initializeApp({
 const db = admin.firestore();
 const pedidosCollection = db.collection("pedidos");
 
+// Conexão Redis para controle de tentativas de login
+const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+redis.on("error", (err) => console.error("[REDIS] Erro de conexão:", err));
+redis.on("connect", () => console.log("[REDIS] Conectado com sucesso"));
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -64,6 +71,7 @@ app.use(cors({
 
 app.use(express.json({ limit: "200kb" }));
 app.use(helmet());
+app.use(cookieParser());
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
@@ -73,31 +81,79 @@ if (!fs.existsSync(DB_FILE)) {
   fs.writeFileSync(DB_FILE, "[]");
 }
 
-const tentativasLogin = {};
+// Constantes para controle de tentativas via Redis
 const MAX_TENTATIVAS = 5;
-const BLOQUEIO_MINUTAS = 10;
+const BLOQUEIO_SEGUNDOS = 10 * 60; // 10 minutos
+const JANELA_TENTATIVAS_SEGUNDOS = 15 * 60; // 15 minutos
 
-// login admin com rate limit
-app.post("/api/login", loginLimiter, (req, res) => {
+// Login admin com rate limit e Redis
+app.post("/api/login", loginLimiter, async (req, res) => {
   const ip = req.ip;
-  tentativasLogin[ip] = tentativasLogin[ip] || { count: 0, bloqueadoAte: null };
+  const redisAttemptsKey = `login:attempts:${ip}`;
+  const redisBlockKey = `login:block:${ip}`;
 
-  if (tentativasLogin[ip].bloqueadoAte && Date.now() < tentativasLogin[ip].bloqueadoAte) {
-    return res.status(429).json({ erro: "Muitas tentativas. Tente novamente mais tarde." });
-  }
+  try {
+    // Verificar se IP está bloqueado
+    const isBlocked = await redis.get(redisBlockKey);
+    if (isBlocked) {
+      return res.status(429).json({ erro: "Bloqueado temporariamente. Tente novamente mais tarde." });
+    }
 
-  const { senha } = req.body;
-  if (senha === process.env.ADMIN_PASSWORD) {
-    tentativasLogin[ip] = { count: 0, bloqueadoAte: null };
-    const token = jwt.sign({ admin: true }, SECRET_KEY, { expiresIn: "12h" });
-    return res.json({ token });
-  }
+    const { senha } = req.body;
+    if (!senha) {
+      return res.status(400).json({ erro: "Senha é obrigatória" });
+    }
 
-  tentativasLogin[ip].count++;
-  if (tentativasLogin[ip].count >= MAX_TENTATIVAS) {
-    tentativasLogin[ip].bloqueadoAte = Date.now() + BLOQUEIO_MINUTAS * 60 * 1000;
+    if (senha === process.env.ADMIN_PASSWORD) {
+      // Login bem-sucedido: resetar tentativas
+      await redis.del(redisAttemptsKey);
+
+      // Gerar JWT
+      const expiresIn = Number(process.env.JWT_EXPIRES_SECONDS) || 43200; // 12h padrão
+      const token = jwt.sign({ admin: true }, SECRET_KEY, { expiresIn });
+
+      // Setar cookie HttpOnly
+      const cookieName = process.env.JWT_COOKIE_NAME || "adminToken";
+      res.cookie(cookieName, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+        maxAge: expiresIn * 1000,
+      });
+
+      return res.json({ ok: true });
+    }
+
+    // Senha incorreta: incrementar contador de tentativas
+    const attempts = await redis.incr(redisAttemptsKey);
+    if (attempts === 1) {
+      // Definir TTL apenas na primeira tentativa
+      await redis.expire(redisAttemptsKey, JANELA_TENTATIVAS_SEGUNDOS);
+    }
+
+    if (attempts >= MAX_TENTATIVAS) {
+      // Bloquear IP
+      await redis.set(redisBlockKey, "1", "EX", BLOQUEIO_SEGUNDOS);
+      await redis.del(redisAttemptsKey);
+      return res.status(429).json({ erro: "Muitas tentativas. Bloqueado temporariamente." });
+    }
+
+    return res.status(401).json({ erro: "Senha incorreta" });
+  } catch (err) {
+    console.error("[LOGIN] Erro:", err);
+    return res.status(500).json({ erro: "Erro interno no servidor" });
   }
-  return res.status(401).json({ erro: "Senha incorreta" });
+});
+
+// Endpoint de logout (limpar cookie)
+app.post("/api/logout", (req, res) => {
+  const cookieName = process.env.JWT_COOKIE_NAME || "adminToken";
+  res.clearCookie(cookieName, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+  return res.json({ ok: true });
 });
 
 app.locals.pedidosCollection = pedidosCollection;

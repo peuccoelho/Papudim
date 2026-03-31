@@ -116,14 +116,14 @@ async function enviarWhatsAppPedido(pedido) {
   const itensTexto = pedido.itens
     .map(i => `${i.nome} x${i.quantidade}`)
     .join(" | ");
-  const total = Number(pedido.total).toFixed(2);
+  const total = Number(pedido.total).toFixed(2); 
 
-  const mensagem = `✅ Pagamento confirmado!
+  const mensagem = `✅ Pagamento confirmado! 
 Cliente: ${pedido.cliente}
 Endereço: ${pedido.endereco}
 Celular: ${pedido.celular}
 Total: R$ ${total}
-Itens: ${itensTexto}`;
+Itens: ${itensTexto}`; 
 
   const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(numero)}&text=${encodeURIComponent(mensagem)}&apikey=${apikey}`;
 
@@ -217,10 +217,10 @@ export async function statusPedido(req, res) {
 
     if (!pedidoDoc.exists) {
       console.log("Pedido não encontrado:", id);
-      return res.status(404).json({ erro: "Pedido não encontrado" });
+      return res.status(404).json({ erro: "Pedido não encontrado" }); 
     }
 
-    const pedido = pedidoDoc.data();
+    const pedido = pedidoDoc.data(); 
     console.log("Status atual do pedido:", pedido.status, "| Pagamento:", pedido.pagamento);
 
     if (pedido.status === "a fazer" || pedido.status === "pago" || pedido.status === "em produção" || pedido.status === "pronto") {

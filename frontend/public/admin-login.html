@@ -98,24 +98,40 @@
     <script>
       async function logar() {
         const senha = document.getElementById("senha").value.trim();
+        if (!senha) {
+          alert("Digite a senha");
+          return;
+        }
 
-        const res = await fetch(
-          "https://homepudimback.onrender.com/api/login",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ senha }),
+        try {
+          const res = await fetch(
+            "https://homepudimback.onrender.com/api/login",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ senha }),
+            }
+          );
+
+          if (res.ok) {
+            // Cookie HttpOnly foi setado pelo servidor
+            window.location.href = "/admin.html";
+          } else {
+            const data = await res.json().catch(() => ({ erro: "Erro desconhecido" }));
+            alert(data.erro || "Falha ao logar");
           }
-        );
-
-        if (res.ok) {
-          const data = await res.json();
-          localStorage.setItem("adminToken", data.token);
-          window.location.href = "/admin.html";
-        } else {
-          alert("Senha incorreta!");
+        } catch (err) {
+          alert("Erro de conexão. Tente novamente.");
         }
       }
+
+      // Permitir login com Enter
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("senha").addEventListener("keypress", (e) => {
+          if (e.key === "Enter") logar();
+        });
+      });
     </script>
   </body>
 </html>
