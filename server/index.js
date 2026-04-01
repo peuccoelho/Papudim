@@ -8,7 +8,6 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import admin from "firebase-admin";
 import helmet from "helmet";
-import Redis from "ioredis";
 import cookieParser from "cookie-parser";
 
 // função para manter o servidor acordado
@@ -44,11 +43,6 @@ admin.initializeApp({
 const db = admin.firestore();
 const pedidosCollection = db.collection("pedidos");
 
-// Conexão Redis para controle de tentativas de login
-const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
-redis.on("error", (err) => console.error("[REDIS] Erro de conexão:", err));
-redis.on("connect", () => console.log("[REDIS] Conectado com sucesso"));
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -81,33 +75,15 @@ if (!fs.existsSync(DB_FILE)) {
   fs.writeFileSync(DB_FILE, "[]");
 }
 
-// Constantes para controle de tentativas via Redis
-const MAX_TENTATIVAS = 5;
-const BLOQUEIO_SEGUNDOS = 10 * 60; // 10 minutos
-const JANELA_TENTATIVAS_SEGUNDOS = 15 * 60; // 15 minutos
-
-// Login admin com rate limit e Redis
-app.post("/api/login", loginLimiter, async (req, res) => {
-  const ip = req.ip;
-  const redisAttemptsKey = `login:attempts:${ip}`;
-  const redisBlockKey = `login:block:${ip}`;
-
+// Login admin com rate limit (5 tentativas por 15 min via express-rate-limit)
+app.post("/api/login", loginLimiter, (req, res) => {
   try {
-    // Verificar se IP está bloqueado
-    const isBlocked = await redis.get(redisBlockKey);
-    if (isBlocked) {
-      return res.status(429).json({ erro: "Bloqueado temporariamente. Tente novamente mais tarde." });
-    }
-
     const { senha } = req.body;
     if (!senha) {
       return res.status(400).json({ erro: "Senha é obrigatória" });
     }
 
     if (senha === process.env.ADMIN_PASSWORD) {
-      // Login bem-sucedido: resetar tentativas
-      await redis.del(redisAttemptsKey);
-
       // Gerar JWT
       const expiresIn = Number(process.env.JWT_EXPIRES_SECONDS) || 43200; // 12h padrão
       const token = jwt.sign({ admin: true }, SECRET_KEY, { expiresIn });
@@ -122,20 +98,6 @@ app.post("/api/login", loginLimiter, async (req, res) => {
       });
 
       return res.json({ ok: true });
-    }
-
-    // Senha incorreta: incrementar contador de tentativas
-    const attempts = await redis.incr(redisAttemptsKey);
-    if (attempts === 1) {
-      // Definir TTL apenas na primeira tentativa
-      await redis.expire(redisAttemptsKey, JANELA_TENTATIVAS_SEGUNDOS);
-    }
-
-    if (attempts >= MAX_TENTATIVAS) {
-      // Bloquear IP
-      await redis.set(redisBlockKey, "1", "EX", BLOQUEIO_SEGUNDOS);
-      await redis.del(redisAttemptsKey);
-      return res.status(429).json({ erro: "Muitas tentativas. Bloqueado temporariamente." });
     }
 
     return res.status(401).json({ erro: "Senha incorreta" });
