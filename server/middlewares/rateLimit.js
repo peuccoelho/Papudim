@@ -20,9 +20,14 @@ export const loginLimiter = rateLimit({
 
 // 10 pedidos por hora por IP
 export const pedidoLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, 
-  max: 10,
-  message: { erro: "Muitos pedidos deste IP. Tente novamente mais tarde." },
+  // reduzir para evitar spam: 1 pedido a cada 5 minutos por IP
+  windowMs: 5 * 60 * 1000, // 5 minutos
+  max: 1, // permitir 1 pedido por janela
+  message: { erro: "Muitas requisições de pedidos deste IP. Aguarde 5 minutos antes de tentar novamente." },
+  handler: (req, res /*, next*/) => {
+    console.warn(`Rate limit: pedido bloqueado para IP ${req.ip}`);
+    res.status(429).json({ erro: "Muitas requisições de pedidos deste IP. Aguarde 5 minutos antes de tentar novamente." });
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
