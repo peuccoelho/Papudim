@@ -1,73 +1,66 @@
-# Papudim - Sistema de Pedidos Online
+# Papudim — Sistema de Pedidos Online
 
-Sistema completo para pedidos online de pudins artesanais, incluindo frontend, backend e um microsserviço de insights para administração.
+Este repositório contém o frontend e o backend do sistema de pedidos do Papudim. Abaixo estão as informações atualizadas sobre como o sistema está funcionando hoje, incluindo alterações operacionais e medidas de segurança atualmente em vigor.
 
----
+## Visão geral atual
 
-## Visão Geral
+- Frontend estático em `frontend/public` (cardápio, checkout e painel admin).
+- Backend em Node.js/Express em `server/` que persiste pedidos no Firebase Firestore.
+- A integração com o gateway Asaas está _desativada_ (código mantido em `server/services/asaasService.js`). O fluxo principal hoje registra pedidos e envia notificações via WhatsApp (CallMeBot).
 
-O sistema permite que clientes façam pedidos personalizados de pudins, acompanhem o status do pagamento e que o administrador gerencie os pedidos e visualize insights de vendas. O sistema é composto por três partes principais:
+## O que mudou / estado operacional
 
-- **Frontend:** Interface web para clientes e admin.
-- **Backend:** API Node.js/Express para processar pedidos, pagamentos e autenticação.
-- **Microsserviço de Insights:** Serviço Python que gera relatórios e estatísticas para o painel administrativo.
+- Asaas: funcionalidade comentada/desativada — para reativar consulte [REATIVAR_ASAAS.md](REATIVAR_ASAAS.md).
+- Pagamentos: o sistema grava pedidos e envia notificação via CallMeBot (WhatsApp). Há um webhook para receber confirmações externas (quando aplicável).
+- Autenticação admin: login via `/api/login` que emite um JWT usado nas rotas administrativas; logout limpa o cookie JWT.
+- Rate limiting: proteção ativa contra spam de pedidos. Veja [server/middlewares/rateLimit.js](server/middlewares/rateLimit.js) — atualmente `pedidoLimiter` permite 1 pedido por IP a cada 5 minutos.
 
----
+## Endpoints principais
 
-## Tecnologias Utilizadas
+- GET `/api/cardapio` — retorna o cardápio (rota pública)
+- POST `/api/pagar` — cria um pedido (aplicado `pedidoLimiter`)
+- POST `/api/pagamento-webhook` — webhook para atualizações de pagamento
+- GET `/api/status-pedido` — consulta status do pedido (limitado)
+- GET `/api/admin-pedidos` — lista de pedidos (requer autenticação)
+- PUT `/api/atualizar-status` — atualizar status de pedido (requer autenticação)
+- DELETE `/api/deletar-pedido/:id` — remover pedido (requer autenticação)
+- POST `/api/login` — login do admin (rate-limited)
+- POST `/api/logout` — logout (limpa cookie)
+- GET `/` e `/health` — health-checks
+- POST `/api/test-webhook` — endpoint de debug para webhooks
 
-- **Frontend:** HTML, CSS (Tailwind), JavaScript.
-- **Backend:** Node.js, Express, Firebase Firestore.
-- **Microsserviço de Insights:** Python (Flask), integração via HTTP
-- **APIs Externas:**
-  - **Asaas API:** Emissão de cobranças e pagamentos (PIX, cartão).
-  - **Firebase Firestore:** Armazenamento dos pedidos.
-  - **CallMeBot API:** Notificações via WhatsApp.
+Arquivos de rota e controllers relevantes: [server/routes/pedidoRoutes.js](server/routes/pedidoRoutes.js), [server/controllers/pedidoController.js](server/controllers/pedidoController.js).
 
----
+## Segurança e limitações
 
-## Funcionalidades
+- Sanitização: entrada do cliente é sanitizada via `server/utils/sanitize.js`.
+- Rate limiting global e específico para login/pedidos em `server/middlewares/rateLimit.js`.
+- Proteção de rotas administrativas via `server/middlewares/authMiddleware.js` (JWT).
+- CORS restrito no `server/index.js` para domínios configurados.
 
-### **Frontend**
+## Variáveis de ambiente importantes
 
-- Página inicial e cardápio interativo
-- Carrinho de compras com validação de pedido mínimo
-- Checkout com integração de pagamento (PIX/Cartão)
-- Página de status do pedido e feedback de pagamento
-- Painel administrativo protegido por login (JWT)
-- Exportação de pedidos em CSV
-- Visualização de insights de vendas
+- `JWT_SECRET` — segredo para assinar JWTs
+- `JWT_COOKIE_NAME` — nome do cookie usado para o token admin (opcional)
+- `CALLMEBOT_NUMERO` e `CALLMEBOT_APIKEY` — usados para enviar notificações WhatsApp
+- `FIREBASE_CONFIG_JSON` — credenciais do Service Account (JSON serializado)
+- `KEEP_AWAKE`, `PING_URL` — usados para manter o servidor acordado (opcional)
+- `ASAAS_ACCESS_TOKEN`, `ASAAS_API` — usados apenas se reativar Asaas
 
-### **Backend**
+Não versionar segredos. Exemplo: veja `.env` local (não comitar).
 
-- API RESTful para pedidos, pagamentos, status e administração
-- Integração com Firestore para persistência dos pedidos
-- Integração com Asaas para geração de cobranças
-- Webhook para confirmação automática de pagamento
-- Envio de notificações via WhatsApp (CallMeBot)
-- Autenticação de admin via JWT
-- Controle de tentativas de login para segurança
+## Observações operacionais
 
-### **Microsserviço de Insights**
+- Para aplicar mudanças de código no backend, reinicie o servidor Node.js.
+- O rate limiter atual (`pedidoLimiter`) já protege a rota de criação de pedidos (`POST /api/pagar`). Se você executar múltiplas instâncias do servidor no futuro, considere usar um store centralizado (Redis) para rate limiting distribuído.
+- Para reativar pagamentos via Asaas, siga as instruções em [REATIVAR_ASAAS.md](REATIVAR_ASAAS.md) e revise `server/services/asaasService.js`.
 
-- API Python que lê os dados dos pedidos e gera:
-  - Faturamento total
-  - Top sabores vendidos
-  - Faturamento por data
-- Endpoint consumido pelo painel admin do frontend
+## Próximos passos sugeridos (opcionais)
 
----
-
-## Medidas de Segurança
-
-- **Sanitização e validação de dados** em todos os inputs do cliente
-- **Autenticação JWT** para rotas administrativas
-- **Controle de tentativas de login** para evitar força bruta
-- **Uso de variáveis de ambiente** para dados sensíveis (tokens, chaves)
-- **CORS restrito** apenas ao domínio do frontend
-- **Helmet** para headers HTTP seguros
-- **Nunca subir `.env` ou chaves privadas** para o repositório
+- Adicionar blacklist temporária/ban após N infrações usando Redis para persistência.
+- Migrar rate limiter para `rate-limit-redis` se for necessário suportar múltiplas instâncias.
+- Adicionar testes automatizados para endpoints críticos (criação de pedido, webhook).
 
 ---
 
-Desenvolvido para o Papudim.
+Se quiser, eu atualizo o README com exemplos de `.env` (com placeholders) ou adiciono um script de deploy/healthcheck. Quer que eu adicione um exemplo de `.env` seguro no README?
