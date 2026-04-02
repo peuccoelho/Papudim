@@ -11,6 +11,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { body } from "express-validator";
 import { handleValidationErrors } from "./middlewares/validation.js";
+import { protegerPaginaAdmin, verificarAutenticacao } from "./middlewares/adminPageAuth.js";
 
 // função para manter o servidor acordado
 function manterServidorAcordado() {
@@ -170,6 +171,9 @@ app.locals.pedidosCollection = pedidosCollection;
 // ASAAS DESATIVADO
 // app.locals.ASAAS_API = ASAAS_API;
 // app.locals.ASAAS_ACCESS_TOKEN = ASAAS_ACCESS_TOKEN;
+
+// Rota para verificar autenticação (usada pelo frontend)
+app.get("/api/verificar-auth", verificarAutenticacao);
 
 app.use("/api", pedidoRoutes);
 

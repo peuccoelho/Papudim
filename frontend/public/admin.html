@@ -173,8 +173,11 @@
       href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
       rel="stylesheet"
     />
+    <script src="ux.js"></script>
 
     <script>
+      const API_URL = "https://homepudimback.onrender.com/api";
+      
       function escapeHTML(str) {
         return String(str)
           .replace(/&/g, "&amp;")
@@ -187,13 +190,15 @@
       // Verificação de autenticação via cookie HttpOnly
       // O cookie não é acessível via JS; validamos chamando uma rota protegida
       let todosPedidos = [];
+      let paginaAtual = 1;
+      let totalPaginas = 1;
 
       async function verificarAuth() {
         try {
-          const res = await fetch(
-            "https://homepudimback.onrender.com/api/admin-pedidos",
-            { credentials: "include" }
-          );
+          const res = await fetch(`${API_URL}/verificar-auth`, { 
+            credentials: "include" 
+          });
+          
           if (res.status === 401 || res.status === 403) {
             window.location.href = "/admin-login.html";
             return false;
@@ -210,32 +215,106 @@
         if (ok) carregarPedidos();
       });
 
-      async function carregarPedidos() {
-        const res = await fetch(
-          "https://homepudimback.onrender.com/api/admin-pedidos",
-          {
+      async function carregarPedidos(pagina = 1) {
+        const tabela = document.getElementById("tabelaPedidos");
+        const filtro = document.getElementById("filtroStatus").value;
+        
+        // Mostrar loader na tabela
+        tabela.innerHTML = `
+          <tr>
+            <td colspan="8" class="py-8 text-center">
+              <div class="flex flex-col items-center gap-2">
+                <svg class="animate-spin w-8 h-8 text-[#a47551]" viewBox="0 0 50 50">
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="90, 150"></circle>
+                </svg>
+                <span class="text-gray-500">Carregando pedidos...</span>
+              </div>
+            </td>
+          </tr>
+        `;
+
+        try {
+          const params = new URLSearchParams({
+            pagina: pagina,
+            limite: 20,
+            ordenarPor: 'criadoEm',
+            ordem: 'desc'
+          });
+          
+          if (filtro) {
+            params.append('status', filtro);
+          }
+
+          const res = await fetch(`${API_URL}/admin-pedidos?${params}`, {
             credentials: "include",
-          }
-        );
+          });
 
-        if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            alert("Sessão expirada. Faça login novamente.");
-            window.location.href = "/admin-login.html";
+          if (!res.ok) {
+            if (res.status === 401 || res.status === 403) {
+              UX.error("Sessão expirada. Redirecionando...");
+              setTimeout(() => {
+                window.location.href = "/admin-login.html";
+              }, 1500);
+              return;
+            }
+            throw new Error(`Erro ${res.status}`);
+          }
+
+          const data = await res.json();
+          
+          // Suporte para resposta com paginação ou array simples
+          if (Array.isArray(data)) {
+            todosPedidos = data;
+            paginaAtual = 1;
+            totalPaginas = 1;
           } else {
-            alert("Erro ao carregar pedidos. Tente novamente mais tarde.");
+            todosPedidos = data.pedidos || [];
+            paginaAtual = data.paginacao?.paginaAtual || 1;
+            totalPaginas = data.paginacao?.totalPaginas || 1;
           }
-          return;
+
+          renderizarPedidos();
+          
+        } catch (error) {
+          console.error("Erro ao carregar pedidos:", error);
+          
+          const isOffline = !navigator.onLine;
+          
+          tabela.innerHTML = `
+            <tr>
+              <td colspan="8" class="py-8 text-center">
+                <div class="flex flex-col items-center gap-3">
+                  <div class="w-12 h-12 text-red-400">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                  </div>
+                  <p class="text-red-500 font-medium">
+                    ${isOffline ? 'Sem conexão com a internet' : 'Erro ao carregar pedidos'}
+                  </p>
+                  <button 
+                    onclick="carregarPedidos(${pagina})" 
+                    class="px-4 py-2 bg-[#a47551] hover:bg-[#916546] text-white rounded-lg transition flex items-center gap-2"
+                  >
+                    <span class="material-icons-outlined text-sm">refresh</span>
+                    Tentar novamente
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+          
+          UX.error(isOffline ? 'Sem conexão com a internet' : 'Erro ao carregar pedidos');
         }
+      }
 
-        const pedidos = await res.json();
-        todosPedidos = pedidos;
-
+      function renderizarPedidos() {
+        const tabela = document.getElementById("tabelaPedidos");
         const filtro = document.getElementById("filtroStatus").value;
 
         let filtrados = filtro
-          ? pedidos.filter((p) => p.status === filtro)
-          : pedidos;
+          ? todosPedidos.filter((p) => p.status === filtro)
+          : todosPedidos;
 
         if (!filtro) {
           filtrados = filtrados.filter((p) => p.status !== "pronto");
@@ -247,12 +326,18 @@
           return tb - ta;
         });
 
-        const tabela = document.getElementById("tabelaPedidos");
         tabela.innerHTML = "";
 
         if (filtrados.length === 0) {
           const linha = document.createElement("tr");
-          linha.innerHTML = `<td colspan="8" class="py-4 text-center text-gray-400">Nenhum pedido encontrado.</td>`;
+          linha.innerHTML = `
+            <td colspan="8" class="py-8 text-center text-gray-400">
+              <div class="flex flex-col items-center gap-2">
+                <span class="material-icons-outlined text-4xl opacity-30">inbox</span>
+                <span>Nenhum pedido encontrado.</span>
+              </div>
+            </td>
+          `;
           tabela.appendChild(linha);
         } else {
           filtrados.forEach((pedido) => {
@@ -315,35 +400,76 @@
           });
         }
       }
-      // Função para excluir cliente/pedido
-      async function excluirPedido(id) {
-        if (
-          !confirm(
-            "Tem certeza que deseja excluir este cliente/pedido? Esta ação não pode ser desfeita."
-          )
-        )
-          return;
+
+      async function alterarStatusPedido(id, novoStatus) {
         try {
-          const res = await fetch(
-            `https://homepudimback.onrender.com/api/deletar-pedido/${id}`,
-            {
-              method: "DELETE",
-              credentials: "include",
-            }
-          );
+          UX.showLoader("Atualizando status...");
+          
+          const res = await fetch(`${API_URL}/atualizar-status`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ id, status: novoStatus }),
+          });
+
           if (res.ok) {
-            alert("Cliente/pedido excluído com sucesso.");
-            carregarPedidos();
+            UX.success("Status atualizado!");
+            carregarPedidos(paginaAtual);
           } else {
-            const erro = await res.json();
-            alert("Erro ao excluir: " + (erro.erro || "Tente novamente."));
+            const erro = await res.json().catch(() => ({}));
+            UX.error(erro.erro || "Erro ao atualizar status");
+            carregarPedidos(paginaAtual);
           }
         } catch (e) {
-          alert("Erro ao excluir. Tente novamente.");
+          UX.error("Erro de conexão ao atualizar status");
+          carregarPedidos(paginaAtual);
+        } finally {
+          UX.hideLoader();
+        }
+      }
+
+      // Função para excluir cliente/pedido
+      async function excluirPedido(id) {
+        const confirmado = await UX.confirm(
+          "Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.",
+          {
+            title: "Excluir Pedido",
+            confirmText: "Excluir",
+            cancelText: "Cancelar",
+            type: "danger"
+          }
+        );
+
+        if (!confirmado) return;
+
+        try {
+          UX.showLoader("Excluindo pedido...");
+          
+          const res = await fetch(`${API_URL}/deletar-pedido/${id}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
+          
+          if (res.ok) {
+            UX.success("Pedido excluído com sucesso!");
+            carregarPedidos(paginaAtual);
+          } else {
+            const erro = await res.json().catch(() => ({}));
+            UX.error(erro.erro || "Erro ao excluir pedido");
+          }
+        } catch (e) {
+          UX.error("Erro de conexão ao excluir pedido");
+        } finally {
+          UX.hideLoader();
         }
       }
 
       function exportarCSV() {
+        if (todosPedidos.length === 0) {
+          UX.warn("Nenhum pedido para exportar");
+          return;
+        }
+
         let csv = "Cliente,Endereço,Celular,Total,Status,Itens,Data\n";
         todosPedidos.forEach((pedido) => {
           const data = new Date(
@@ -352,9 +478,9 @@
           const itens = pedido.itens
             .map((i) => `${i.nome} x${i.quantidade}`)
             .join(" / ");
-          csv += `${pedido.cliente},${pedido.endereco || "-"},${
+          csv += `"${pedido.cliente}","${pedido.endereco || "-"}","${
             pedido.celular || "-"
-          },${pedido.total},${pedido.status},"${itens}",${data}\n`;
+          }",${pedido.total},"${pedido.status}","${itens}","${data}"\n`;
         });
 
         const blob = new Blob([csv], { type: "text/csv" });
@@ -362,18 +488,23 @@
         link.href = URL.createObjectURL(blob);
         link.download = "pedidos_papudim.csv";
         link.click();
+        
+        UX.success("CSV exportado!");
       }
 
       async function logout() {
         try {
-          await fetch("https://homepudimback.onrender.com/api/logout", {
+          UX.showLoader("Saindo...");
+          await fetch(`${API_URL}/logout`, {
             method: "POST",
             credentials: "include",
           });
         } catch (e) {
           // Ignorar erro de logout
+        } finally {
+          UX.hideLoader();
+          window.location.href = "/admin-login.html";
         }
-        window.location.href = "/admin-login.html";
       }
 
       function mostrarInsights() {
@@ -396,10 +527,23 @@
       }
 
       async function carregarInsights() {
+        const content = document.getElementById("insights-content");
+        content.innerHTML = `
+          <div class="flex items-center gap-2 text-gray-500">
+            <svg class="animate-spin w-5 h-5" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="90, 150"></circle>
+            </svg>
+            Carregando insights...
+          </div>
+        `;
+
         try {
           const res = await fetch(
             "https://relatoriospudim.onrender.com/api/insights"
           );
+          
+          if (!res.ok) throw new Error("Erro ao carregar");
+          
           const data = await res.json();
           let html = `<b>Faturamento total:</b> <span class="text-green-700">R$ ${data.faturamento_total.toFixed(
             2
@@ -420,10 +564,15 @@
               )}</span></li>`)
           );
           html += "</ul>";
-          document.getElementById("insights-content").innerHTML = html;
+          content.innerHTML = html;
         } catch (e) {
-          document.getElementById("insights-content").innerText =
-            "Erro ao carregar insights.";
+          content.innerHTML = `
+            <div class="flex items-center gap-2 text-red-500">
+              <span class="material-icons-outlined">error</span>
+              Erro ao carregar insights.
+              <button onclick="carregarInsights()" class="underline">Tentar novamente</button>
+            </div>
+          `;
         }
       }
 
@@ -434,6 +583,16 @@
         )}`;
         window.open(url, "_blank");
       }
+
+      // Listener para detectar mudanças de conexão
+      window.addEventListener('online', () => {
+        UX.success('Conexão restaurada!');
+        carregarPedidos(paginaAtual);
+      });
+
+      window.addEventListener('offline', () => {
+        UX.warn('Você está offline');
+      });
     </script>
     <script src="script.js"></script>
   </body>

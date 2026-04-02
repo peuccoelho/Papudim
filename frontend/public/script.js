@@ -176,7 +176,16 @@ async function carregarCardapio() {
   if (!cardapioContainer) return;
   
   try {
-    cardapioContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Carregando cardápio...</p>';
+    cardapioContainer.innerHTML = `
+      <div class="col-span-full flex flex-col items-center justify-center py-12">
+        <div class="cardapio-loader">
+          <svg class="animate-spin" viewBox="0 0 50 50" width="48" height="48">
+            <circle cx="25" cy="25" r="20" fill="none" stroke="#a47551" stroke-width="4" stroke-linecap="round" stroke-dasharray="90, 150" stroke-dashoffset="0"></circle>
+          </svg>
+        </div>
+        <p class="text-gray-500 mt-4">Carregando cardápio...</p>
+      </div>
+    `;
     
     const response = await fetch(`${API_URL}/cardapio`);
     if (!response.ok) throw new Error('Erro ao carregar cardápio');
@@ -185,7 +194,36 @@ async function carregarCardapio() {
     renderizarCardapio();
   } catch (error) {
     console.error('Erro ao carregar cardápio:', error);
-    cardapioContainer.innerHTML = '<p class="text-center text-red-500 py-8">Erro ao carregar cardápio. Tente recarregar a página.</p>';
+    
+    const isOffline = !navigator.onLine;
+    const errorMessage = isOffline 
+      ? 'Sem conexão com a internet.' 
+      : 'Erro ao carregar cardápio.';
+    
+    cardapioContainer.innerHTML = `
+      <div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
+        <div class="w-16 h-16 mb-4 text-red-400">
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+        </div>
+        <p class="text-red-500 font-medium mb-2">${errorMessage}</p>
+        <button 
+          onclick="carregarCardapio()" 
+          class="mt-2 px-4 py-2 bg-[#a47551] hover:bg-[#916546] text-white rounded-xl transition flex items-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          Tentar novamente
+        </button>
+      </div>
+    `;
+    
+    // Toast de erro
+    if (window.UX) {
+      UX.error(errorMessage);
+    }
   }
 }
 
@@ -615,13 +653,25 @@ btnCancelarResumo.addEventListener("click", () => {
 btnConfirmarResumo.addEventListener("click", async () => {
   try {
     modalResumo.classList.remove("active");
-    mostrarLoader();
+    
+    // Usar novo loader se disponível
+    if (window.UX) {
+      UX.showLoader("Enviando pedido...");
+    } else {
+      mostrarLoader();
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     const res = await fetch(`${API_URL}/pagar`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pedidoParaEnviar),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (res.ok) {
       const data = await res.json();
@@ -653,23 +703,58 @@ Aguardo confirmação para finalizar o pedido! 😊`;
         nomeClienteInput.value = "";
         if (nomeClienteMobile) nomeClienteMobile.value = "";
         
-        exibirToast("Pedido enviado! Redirecionando ao WhatsApp...");
+        if (window.UX) {
+          UX.success("Pedido enviado! Redirecionando ao WhatsApp...");
+        } else {
+          exibirToast("Pedido enviado! Redirecionando ao WhatsApp...");
+        }
         
         // Usa location.href para compatibilidade com Safari (window.open é bloqueado após async)
         setTimeout(() => {
           window.location.href = urlWhatsApp;
         }, 500);
       } else {
-        alert("Erro ao processar pedido.");
+        if (window.UX) {
+          UX.error("Erro ao processar pedido. Tente novamente.");
+        } else {
+          alert("Erro ao processar pedido.");
+        }
       }
     } else {
-      const erro = await res.json();
-      alert(erro.erro || "Erro ao processar pedido.");
+      const erro = await res.json().catch(() => ({}));
+      const mensagemErro = erro.erro || "Erro ao processar pedido.";
+      
+      if (window.UX) {
+        UX.error(mensagemErro);
+      } else {
+        alert(mensagemErro);
+      }
     }
   } catch (e) {
-    alert("Erro ao processar pedido.");
+    console.error("Erro ao processar pedido:", e);
+    
+    let mensagemErro = "Erro ao processar pedido.";
+    
+    if (e.name === "AbortError") {
+      mensagemErro = "Tempo de conexão esgotado. Verifique sua internet.";
+    } else if (!navigator.onLine) {
+      mensagemErro = "Sem conexão com a internet.";
+    }
+    
+    if (window.UX) {
+      UX.networkError(mensagemErro, () => {
+        // Retry - reabrir modal de resumo
+        modalResumo.classList.add("active");
+      });
+    } else {
+      alert(mensagemErro);
+    }
   } finally {
-    esconderLoader();
+    if (window.UX) {
+      UX.hideLoader();
+    } else {
+      esconderLoader();
+    }
   }
 });
 

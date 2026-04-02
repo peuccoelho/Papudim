@@ -95,42 +95,89 @@
     <footer class="mt-10 text-sm text-gray-500 text-center">
       &copy; 2025 Papudim
     </footer>
+    <script src="ux.js"></script>
     <script>
+      const API_URL = "https://homepudimback.onrender.com/api";
+      
       async function logar() {
-        const senha = document.getElementById("senha").value.trim();
+        const senhaInput = document.getElementById("senha");
+        const senha = senhaInput.value.trim();
+        const btnEntrar = document.querySelector("button");
+        
         if (!senha) {
-          alert("Digite a senha");
+          UX.warn("Digite a senha");
+          senhaInput.focus();
           return;
         }
 
         try {
-          const res = await fetch(
-            "https://homepudimback.onrender.com/api/login",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({ senha }),
-            }
-          );
+          btnEntrar.disabled = true;
+          UX.showLoader("Entrando...");
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+          const res = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ senha }),
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
 
           if (res.ok) {
+            UX.success("Login realizado!");
             // Cookie HttpOnly foi setado pelo servidor
-            window.location.href = "/admin.html";
+            setTimeout(() => {
+              window.location.href = "/admin.html";
+            }, 500);
           } else {
             const data = await res.json().catch(() => ({ erro: "Erro desconhecido" }));
-            alert(data.erro || "Falha ao logar");
+            
+            if (res.status === 429) {
+              UX.error("Muitas tentativas. Aguarde alguns minutos.");
+            } else if (res.status === 401) {
+              UX.error("Senha incorreta");
+              senhaInput.value = "";
+              senhaInput.focus();
+            } else {
+              UX.error(data.erro || "Falha ao logar");
+            }
           }
         } catch (err) {
-          alert("Erro de conexão. Tente novamente.");
+          console.error("Erro de login:", err);
+          
+          if (err.name === "AbortError") {
+            UX.error("Tempo de conexão esgotado. Tente novamente.");
+          } else if (!navigator.onLine) {
+            UX.error("Sem conexão com a internet.");
+          } else {
+            UX.error("Erro de conexão. Tente novamente.");
+          }
+        } finally {
+          btnEntrar.disabled = false;
+          UX.hideLoader();
         }
       }
 
       // Permitir login com Enter
       document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("senha").addEventListener("keypress", (e) => {
+        const senhaInput = document.getElementById("senha");
+        senhaInput.addEventListener("keypress", (e) => {
           if (e.key === "Enter") logar();
         });
+        senhaInput.focus();
+      });
+
+      // Listener para detectar mudanças de conexão
+      window.addEventListener('online', () => {
+        UX.success('Conexão restaurada!');
+      });
+
+      window.addEventListener('offline', () => {
+        UX.warn('Você está offline');
       });
     </script>
   </body>
