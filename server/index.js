@@ -9,6 +9,8 @@ import { dirname } from "path";
 import admin from "firebase-admin";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import { body } from "express-validator";
+import { handleValidationErrors } from "./middlewares/validation.js";
 
 // função para manter o servidor acordado
 function manterServidorAcordado() {
@@ -47,8 +49,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
+
+// Desabilitar header x-powered-by para não expor tecnologia usada
+app.disable('x-powered-by');
+
 app.set('trust proxy', 1);
-const PORT = 3000;
+
+// PORT via variável de ambiente
+const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET;
 const DB_FILE = path.join(__dirname, "pedidos.json");
 
@@ -64,7 +72,42 @@ app.use(cors({ // configuração de CORS para permitir apenas os dominios autori
 
 
 app.use(express.json({ limit: "200kb" }));
-app.use(helmet());
+
+// Configuração completa do Helmet com CSP e headers de segurança
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://papudim.netlify.app", "https://papudim.tech", "https://www.papudim.tech"],
+      fontSrc: ["'self'", "https:", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Desabilitado para permitir recursos externos
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  dnsPrefetchControl: { allow: false },
+  frameguard: { action: "deny" },
+  hidePoweredBy: true,
+  hsts: {
+    maxAge: 31536000, // 1 ano
+    includeSubDomains: true,
+    preload: true,
+  },
+  ieNoOpen: true,
+  noSniff: true,
+  originAgentCluster: true,
+  permittedCrossDomainPolicies: { permittedPolicies: "none" },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  xssFilter: true,
+}));
+
 app.use(cookieParser());
 app.use((req, res, next) => { // middleware de logging simples para monitorar requisições
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
@@ -76,12 +119,17 @@ if (!fs.existsSync(DB_FILE)) {
 }
 
 // Login admin com rate limit (5 tentativas por 15 min via express-rate-limit)
-app.post("/api/login", loginLimiter, (req, res) => {
+const loginValidation = [
+  body("senha")
+    .trim()
+    .notEmpty().withMessage("Senha é obrigatória")
+    .isLength({ min: 1, max: 100 }).withMessage("Senha inválida"),
+  handleValidationErrors
+];
+
+app.post("/api/login", loginLimiter, loginValidation, (req, res) => {
   try {
     const { senha } = req.body;
-    if (!senha) {// validação basica para garantir que a senha foi fornecida
-      return res.status(400).json({ erro: "Senha é obrigatória" });
-    }
 
     if (senha === process.env.ADMIN_PASSWORD) {
       // Gerar JWT

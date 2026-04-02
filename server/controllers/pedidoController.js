@@ -1,10 +1,15 @@
+import fetch from "node-fetch";
+import axios from "axios";
+import { sanitizeInput, sanitizeId, sanitizeNumber, sanitizePedido, sanitizeItem } from "../utils/sanitize.js";
+import { cardapio, buscarPreco } from "../data/cardapio.js";
+// ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
+// import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
+
 // Deletar cliente/pedido por ID
 export async function deletarPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
   const { id } = req.params;
-  if (!id) {
-    return res.status(400).json({ erro: "ID do pedido é obrigatório" });
-  }
+
   try {
     const pedidoDoc = await pedidosCollection.doc(id).get();
     if (!pedidoDoc.exists) {
@@ -17,12 +22,6 @@ export async function deletarPedido(req, res) {
     res.status(500).json({ erro: "Erro ao excluir pedido" });
   }
 }
-import fetch from "node-fetch";
-import axios from "axios";
-import { sanitizeInput } from "../utils/sanitize.js";
-import { cardapio, buscarPreco } from "../data/cardapio.js";
-// ASAAS DESATIVADO - consulte REATIVAR_ASAAS.md para reativar
-// import { criarClienteAsaas, criarCobrancaAsaas } from "../services/asaasService.js";
 
 
 export async function criarPedido(req, res) {
@@ -30,40 +29,40 @@ export async function criarPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
   const pedido = req.body;
 
-  // validação - apenas nome do cliente e itens são obrigatórios - 
-  if (
-    !pedido.cliente ||
-    !Array.isArray(pedido.itens) ||
-    pedido.itens.length === 0
-  ) {
+  // Sanitização completa dos dados do pedido
+  const dadosSanitizados = sanitizePedido(pedido);
+  if (!dadosSanitizados) {
     return res.status(400).json({ erro: "Dados do pedido inválidos." });
   }
 
-  pedido.cliente = sanitizeInput(pedido.cliente);
+  // Validação já feita pelo middleware, mas mantemos verificação extra
+  if (!pedido.itens || !Array.isArray(pedido.itens) || pedido.itens.length === 0) {
+    return res.status(400).json({ erro: "Dados do pedido inválidos." });
+  }
 
   let totalCalculado = 0;
   const itensSanitizados = [];
 
   for (const item of pedido.itens) {
-    // Validação usando cardápio centralizado - NUNCA confiar no preço do frontend
-    const precoOficial = buscarPreco(item.produtoId, item.peso);
-    
-    if (
-      precoOficial === null ||
-      typeof item.quantidade !== "number" ||
-      item.quantidade < 1
-    ) {
+    // Sanitizar item
+    const itemSanitizado = sanitizeItem(item);
+    if (!itemSanitizado || !itemSanitizado.produtoId) {
       console.warn("Item inválido recebido:", item);
       return res.status(400).json({ erro: `Item inválido: ${item.nome || item.produtoId}` });
     }
+
+    // Validação usando cardápio centralizado - NUNCA confiar no preço do frontend
+    const precoOficial = buscarPreco(itemSanitizado.produtoId, itemSanitizado.peso);
     
-    totalCalculado += precoOficial * item.quantidade;
+    if (precoOficial === null || itemSanitizado.quantidade < 1) {
+      console.warn("Item inválido recebido:", item);
+      return res.status(400).json({ erro: `Item inválido: ${itemSanitizado.nome || itemSanitizado.produtoId}` });
+    }
+    
+    totalCalculado += precoOficial * itemSanitizado.quantidade;
     itensSanitizados.push({
-      produtoId: sanitizeInput(item.produtoId),
-      nome: sanitizeInput(item.nome),
-      preco: precoOficial,
-      peso: sanitizeInput(item.peso || ""),
-      quantidade: item.quantidade
+      ...itemSanitizado,
+      preco: precoOficial
     });
   }
 
@@ -71,28 +70,30 @@ export async function criarPedido(req, res) {
 
   const totalUnidades = itensSanitizados.reduce((sum, item) => sum + item.quantidade, 0);
   
-  const pedidoId = pedido.id || `pedido-${Date.now()}`;
-  pedido.id = pedidoId;
-  pedido.status = "aguardando_contato";
-  pedido.itens = itensSanitizados;
-  pedido.total = totalCalculado;
-  pedido.criadoEm = new Date().toISOString();
-
+  const pedidoId = pedido.id ? sanitizeId(pedido.id) : `pedido-${Date.now()}`;
   
+  const pedidoFinal = {
+    id: pedidoId,
+    cliente: dadosSanitizados.cliente,
+    endereco: dadosSanitizados.endereco,
+    celular: dadosSanitizados.celular,
+    observacoes: dadosSanitizados.observacoes,
+    status: "aguardando_contato",
+    itens: itensSanitizados,
+    total: totalCalculado,
+    criadoEm: new Date().toISOString()
+  };
+
   console.log("Salvando pedido no Firebase:", pedidoId);
-  await pedidosCollection.doc(pedidoId).set(pedido);
+  await pedidosCollection.doc(pedidoId).set(pedidoFinal);
   console.log("Pedido salvo no Firebase com sucesso");
 
-
-  const { cliente, total } = pedido;
-
   try {
-    // Retorna dados do pedido para o frontend gerar link WhatsApp
     res.json({
       sucesso: true,
       pedidoId: pedidoId,
-      cliente: cliente,
-      total: total,
+      cliente: pedidoFinal.cliente,
+      total: totalCalculado,
       itens: itensSanitizados
     });
 
@@ -208,7 +209,7 @@ async function processarWebhook(body, pedidosCollection) {
 
 export async function statusPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
-  const { id } = req.query;
+  const id = sanitizeId(req.query.id);
 
   console.log("Consultando status do pedido:", id);
 
@@ -238,10 +239,70 @@ export async function statusPedido(req, res) {
 
 export async function adminPedidos(req, res) {
   const { pedidosCollection } = req.app.locals;
+  
   try {
-    const snapshot = await pedidosCollection.get();
-    const pedidos = snapshot.docs.map(doc => doc.data());
-    res.json(pedidos);
+    // Parâmetros de paginação e filtro (já validados pelo middleware)
+    const limite = sanitizeNumber(req.query.limite, { min: 1, max: 100, defaultValue: 20 });
+    const pagina = sanitizeNumber(req.query.pagina, { min: 1, defaultValue: 1 });
+    const statusFiltro = req.query.status || "todos";
+    const ordenarPor = req.query.ordenarPor || "criadoEm";
+    const ordem = req.query.ordem || "desc";
+
+    // Construir query do Firestore
+    let query = pedidosCollection;
+
+    // Filtrar por status se especificado
+    if (statusFiltro && statusFiltro !== "todos") {
+      query = query.where("status", "==", statusFiltro);
+    }
+
+    // Ordenação
+    const ordemFirestore = ordem === "asc" ? "asc" : "desc";
+    query = query.orderBy(ordenarPor, ordemFirestore);
+
+    // Paginação: buscar limite + 1 para saber se há próxima página
+    const offset = (pagina - 1) * limite;
+    
+    // Para paginação eficiente no Firestore, usamos limit
+    // Nota: offset não é ideal para grandes datasets, mas funciona para uso moderado
+    query = query.limit(limite + 1);
+
+    // Se não for primeira página, precisamos de cursor
+    // Para simplificar, usamos offset (adequado para datasets pequenos/médios)
+    if (offset > 0) {
+      query = query.offset(offset);
+    }
+
+    const snapshot = await query.get();
+    const docs = snapshot.docs;
+
+    // Verificar se há mais páginas
+    const temProximaPagina = docs.length > limite;
+    const pedidos = docs.slice(0, limite).map(doc => doc.data());
+
+    // Buscar total para metadados (query separada, pode ser cacheada)
+    let totalPedidos = 0;
+    if (statusFiltro && statusFiltro !== "todos") {
+      const countSnapshot = await pedidosCollection.where("status", "==", statusFiltro).count().get();
+      totalPedidos = countSnapshot.data().count;
+    } else {
+      const countSnapshot = await pedidosCollection.count().get();
+      totalPedidos = countSnapshot.data().count;
+    }
+
+    const totalPaginas = Math.ceil(totalPedidos / limite);
+
+    res.json({
+      pedidos,
+      paginacao: {
+        paginaAtual: pagina,
+        itensPorPagina: limite,
+        totalItens: totalPedidos,
+        totalPaginas,
+        temProximaPagina,
+        temPaginaAnterior: pagina > 1
+      }
+    });
   } catch (error) {
     console.error("Erro ao listar pedidos:", error);
     res.status(500).json({ erro: "Erro ao buscar pedidos" });
@@ -251,7 +312,11 @@ export async function adminPedidos(req, res) {
 export async function atualizarStatusPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
   console.log("Body recebido para atualizar status:", req.body); 
-  const { id, status } = req.body;
+  
+  // IDs já validados pelo middleware
+  const id = sanitizeId(req.body.id);
+  const { status } = req.body;
+  
   const statusValidos = ["a fazer", "em produção", "pronto", "pendente", "pago", "aguardando_contato"];
 
   if (!statusValidos.includes(status)) {
@@ -259,9 +324,18 @@ export async function atualizarStatusPedido(req, res) {
   }
 
   try {
-    await pedidosCollection.doc(id).update({ status });
+    const pedidoDoc = await pedidosCollection.doc(id).get();
+    if (!pedidoDoc.exists) {
+      return res.status(404).json({ erro: "Pedido não encontrado" });
+    }
+    
+    await pedidosCollection.doc(id).update({ 
+      status,
+      atualizadoEm: new Date().toISOString()
+    });
     res.json({ ok: true });
   } catch (e) {
+    console.error("Erro ao atualizar status:", e);
     res.status(500).json({ erro: "Erro ao atualizar status" });
   }
 }
