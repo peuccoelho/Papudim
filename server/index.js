@@ -13,14 +13,14 @@ import cookieParser from "cookie-parser";
 // função para manter o servidor acordado
 function manterServidorAcordado() {
   const url = process.env.PING_URL || "https://homepudimback.onrender.com/";
-  setInterval(() => {
+  setInterval(() => { // ping mara manter o servidor acordado - pode ser desativado se necessario via variavel de ambiente
     fetch(url)
       .then(res => console.log(`[PING] Servidor pingado: ${url} - Status: ${res.status}`))
       .catch(err => console.error(`[PING] Erro ao pingar servidor:`, err));
   }, 5 * 60 * 1000); 
 }
 
-if (process.env.KEEP_AWAKE !== "false") {
+if (process.env.KEEP_AWAKE !== "false") {  // permite desativar o ping se necessario
   manterServidorAcordado();
 }
 
@@ -36,7 +36,7 @@ dotenv.config();
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG_JSON);
 
-admin.initializeApp({
+admin.initializeApp({ // inicialização do firebase admin com configuração do serviço - certifique-se de que a variavel de ambiente esteja corretamente configurada com o JSON do serviço
   credential: admin.credential.cert(serviceAccount)
 });
 
@@ -57,7 +57,7 @@ const DB_FILE = path.join(__dirname, "pedidos.json");
 // const ASAAS_API = "https://api-sandbox.asaas.com/";
 // configurarWebhookAsaas(ASAAS_API, ASAAS_ACCESS_TOKEN);
 
-app.use(cors({
+app.use(cors({ // configuração de CORS para permitir apenas os dominios autorizados - ajuste conforme necessario para produção
   origin: ["https://papudim.netlify.app", "https://papudim.tech", "https://www.papudim.tech", "http://localhost:5173"],
   credentials: true,
 }));
@@ -66,7 +66,7 @@ app.use(cors({
 app.use(express.json({ limit: "200kb" }));
 app.use(helmet());
 app.use(cookieParser());
-app.use((req, res, next) => {
+app.use((req, res, next) => { // middleware de logging simples para monitorar requisições
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
 });
@@ -79,7 +79,7 @@ if (!fs.existsSync(DB_FILE)) {
 app.post("/api/login", loginLimiter, (req, res) => {
   try {
     const { senha } = req.body;
-    if (!senha) {
+    if (!senha) {// validação basica para garantir que a senha foi fornecida
       return res.status(400).json({ erro: "Senha é obrigatória" });
     }
 
@@ -90,7 +90,7 @@ app.post("/api/login", loginLimiter, (req, res) => {
 
       // Setar cookie HttpOnly
       const cookieName = process.env.JWT_COOKIE_NAME || "adminToken";
-      res.cookie(cookieName, token, {
+      res.cookie(cookieName, token, { // opções de segurança para cookie de autenticação
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
@@ -101,7 +101,7 @@ app.post("/api/login", loginLimiter, (req, res) => {
     }
 
     return res.status(401).json({ erro: "Senha incorreta" });
-  } catch (err) {
+  } catch (err) { // captura de erros inesperados para evitar crash do servidor
     console.error("[LOGIN] Erro:", err);
     return res.status(500).json({ erro: "Erro interno no servidor" });
   }
@@ -110,7 +110,7 @@ app.post("/api/login", loginLimiter, (req, res) => {
 // Endpoint de logout (limpar cookie)
 app.post("/api/logout", (req, res) => {
   const cookieName = process.env.JWT_COOKIE_NAME || "adminToken";
-  res.clearCookie(cookieName, {
+  res.clearCookie(cookieName, { //opções de segurança para cookie de logout
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "Strict",
@@ -126,7 +126,7 @@ app.locals.pedidosCollection = pedidosCollection;
 app.use("/api", pedidoRoutes);
 
 // Rota de health check para manter servidor acordado
-app.get("/", (req, res) => {
+app.get("/", (req, res) => {// respota simples para verificar se o servidor está rodando
   res.json({ status: "ok", message: "Papudim API rodando!", timestamp: new Date().toISOString() });
 });
 
@@ -135,7 +135,7 @@ app.get("/health", (req, res) => {
 });
 
 // endpoint para testar webhook manualmente
-app.post("/api/test-webhook", (req, res) => {
+app.post("/api/test-webhook", (req, res) => { // endpoint de teste para verificar recebimento de webhooks
   console.log("este webhook recebido:", JSON.stringify(req.body, null, 2));
   res.json({ success: true, body: req.body });
 });

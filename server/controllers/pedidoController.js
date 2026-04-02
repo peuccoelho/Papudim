@@ -30,7 +30,7 @@ export async function criarPedido(req, res) {
   const { pedidosCollection } = req.app.locals;
   const pedido = req.body;
 
-  // validação - apenas nome do cliente e itens são obrigatórios
+  // validação - apenas nome do cliente e itens são obrigatórios - 
   if (
     !pedido.cliente ||
     !Array.isArray(pedido.itens) ||
@@ -255,7 +255,7 @@ export async function atualizarStatusPedido(req, res) {
   const statusValidos = ["a fazer", "em produção", "pronto", "pendente", "pago", "aguardando_contato"];
 
   if (!statusValidos.includes(status)) {
-    return res.status(400).json({ erro: "Status inválido." });
+    return res.status(400).json({ erro: "Status inválido." }); 
   }
 
   try {
