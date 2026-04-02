@@ -61,6 +61,4 @@ Não versionar segredos. Exemplo: veja `.env` local (não comitar).
 - Migrar rate limiter para `rate-limit-redis` se for necessário suportar múltiplas instâncias.
 - Adicionar testes automatizados para endpoints críticos (criação de pedido, webhook).
 
----
 
-Se quiser, eu atualizo o README com exemplos de `.env` (com placeholders) ou adiciono um script de deploy/healthcheck. Quer que eu adicione um exemplo de `.env` seguro no README?
