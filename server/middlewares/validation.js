@@ -102,7 +102,7 @@ export const validateDeletarPedido = [
   handleValidationErrors
 ];
 
-// Validação para admin-pedidos com paginação
+// Validação para admin-pedidos com paginação 
 export const validateAdminPedidos = [
   query("limite")
     .optional()

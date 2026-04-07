@@ -92,7 +92,7 @@ export function sanitizePedido(pedido) {
 /**
  * Sanitiza item do pedido
  * @param {Object} item - Item do pedido
- * @returns {Object} Item sanitizado
+ * @returns {Object} - Item sanitizado 
  */
 export function sanitizeItem(item) {
   if (!item || typeof item !== "object") {
