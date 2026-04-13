@@ -25,7 +25,7 @@ router.get("/status-pedido", pedidoLimiter, validateStatusPedido, statusPedido);
 router.get("/admin-pedidos", pedidoLimiter, autenticar, validateAdminPedidos, adminPedidos);
 router.put("/atualizar-status", autenticar, validateAtualizarStatus, atualizarStatusPedido);
 
-// Deletar cliente/pedido (admin)
+// Deletar cliente/pedido (admin) 
 router.delete("/deletar-pedido/:id", autenticar, validateDeletarPedido, deletarPedido);
 
 // endpoint de debug para verificar pedidos

@@ -18,10 +18,10 @@ export const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// 10 pedidos por hora por IP
+// 10 pedidos por hora por IP dessa parte o ip pode ficar inativo pois o cliente pode fazer um pedido e depois esperar 
 export const pedidoLimiter = rateLimit({
   // reduzir para evitar spam: 1 pedido a cada 5 minutos por IP
-  windowMs: 5 * 60 * 1000, // 5 minutos
+  windowMs: 5 * 60 * 1000, // 5 minutos se quiser manter 10 pedidos por hora, ou 60 * 60 * 1000 para 1 pedidos por hora
   max: 1, // permitir 1 pedido por janela
   message: { erro: "Muitas requisições de pedidos deste IP. Aguarde 5 minutos antes de tentar novamente." },
   handler: (req, res /*, next*/) => {
@@ -35,7 +35,7 @@ export const pedidoLimiter = rateLimit({
 // 200 requisições por hora por IP
 export const adminLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 200, 
+  max: 200, // 
   message: { erro: "Muitas requisições do admin. Tente novamente mais tarde." },
   standardHeaders: true,
   legacyHeaders: false,

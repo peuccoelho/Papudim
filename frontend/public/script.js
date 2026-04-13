@@ -103,7 +103,7 @@ previewModalAdd?.addEventListener("click", () => {
   }
 });
 
-// Fechar com ESC
+// Fechar com ESC 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && previewModal?.classList.contains("active")) {
     fecharPreviewModal();
@@ -677,7 +677,7 @@ btnConfirmarResumo.addEventListener("click", async () => {
       const data = await res.json();
     
       if (data.sucesso) {
-        // Gera mensagem personalizada para WhatsApp
+        // Gera mensagem personalizada para WhatsApp 
         const itensTexto = data.itens
           .map(i => `- ${i.nome} x${i.quantidade} - R$ ${(i.preco * i.quantidade).toFixed(2).replace(".", ",")}`)
           .join("\n");

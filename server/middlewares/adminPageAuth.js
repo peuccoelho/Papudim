@@ -17,7 +17,7 @@ export function protegerPaginaAdmin(req, res, next) {
 
   let token = null;
 
-  // Buscar token no cookie
+  // Buscar token no cookie 
   if (req.cookies && req.cookies[cookieName]) {
     token = req.cookies[cookieName];
   }

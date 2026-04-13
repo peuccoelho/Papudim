@@ -51,7 +51,7 @@ export async function criarPedido(req, res) {
       return res.status(400).json({ erro: `Item inválido: ${item.nome || item.produtoId}` });
     }
 
-    // Validação usando cardápio centralizado - NUNCA confiar no preço do frontend
+    // Validação usando cardápio centralizado - NUNCA confiar no preço do frontend - 
     const precoOficial = buscarPreco(itemSanitizado.produtoId, itemSanitizado.peso);
     
     if (precoOficial === null || itemSanitizado.quantidade < 1) {
@@ -241,10 +241,10 @@ export async function adminPedidos(req, res) {
   const { pedidosCollection } = req.app.locals;
   
   try {
-    // Parâmetros de paginação e filtro (já validados pelo middleware)
+    // Parâmetros de paginação e filtro (já validados pelo middleware) 
     const limite = sanitizeNumber(req.query.limite, { min: 1, max: 100, defaultValue: 20 });
     const pagina = sanitizeNumber(req.query.pagina, { min: 1, defaultValue: 1 });
-    const statusFiltro = req.query.status || "todos";
+    const statusFiltro = req.query.status || "todos"; // todos os maps estão validados pelo middleware
     const ordenarPor = req.query.ordenarPor || "criadoEm";
     const ordem = req.query.ordem || "desc";
 
@@ -299,7 +299,7 @@ export async function adminPedidos(req, res) {
         itensPorPagina: limite,
         totalItens: totalPedidos,
         totalPaginas,
-        temProximaPagina,
+        temProximaPagina,  
         temPaginaAnterior: pagina > 1
       }
     });
