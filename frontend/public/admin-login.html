@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
@@ -31,7 +31,8 @@
       a,
       .rounded-xl,
       .rounded-lg {
-        transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        transition:
+          background 0.2s cubic-bezier(0.4, 0, 0.2, 1),
           color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
           box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
           transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -93,17 +94,17 @@
       </button>
     </div>
     <footer class="mt-10 text-sm text-gray-500 text-center">
-      &copy; 2025 Papudim
+      &copy; 2026 Papudim
     </footer>
     <script src="ux.js"></script>
     <script>
       const API_URL = "https://homepudimback.onrender.com/api";
-      
+
       async function logar() {
         const senhaInput = document.getElementById("senha");
         const senha = senhaInput.value.trim();
         const btnEntrar = document.querySelector("button");
-        
+
         if (!senha) {
           UX.warn("Digite a senha");
           senhaInput.focus();
@@ -134,8 +135,10 @@
               window.location.href = "/admin.html";
             }, 500);
           } else {
-            const data = await res.json().catch(() => ({ erro: "Erro desconhecido" }));
-            
+            const data = await res
+              .json()
+              .catch(() => ({ erro: "Erro desconhecido" }));
+
             if (res.status === 429) {
               UX.error("Muitas tentativas. Aguarde alguns minutos.");
             } else if (res.status === 401) {
@@ -148,7 +151,7 @@
           }
         } catch (err) {
           console.error("Erro de login:", err);
-          
+
           if (err.name === "AbortError") {
             UX.error("Tempo de conexão esgotado. Tente novamente.");
           } else if (!navigator.onLine) {
@@ -172,12 +175,12 @@
       });
 
       // Listener para detectar mudanças de conexão
-      window.addEventListener('online', () => {
-        UX.success('Conexão restaurada!');
+      window.addEventListener("online", () => {
+        UX.success("Conexão restaurada!");
       });
 
-      window.addEventListener('offline', () => {
-        UX.warn('Você está offline');
+      window.addEventListener("offline", () => {
+        UX.warn("Você está offline");
       });
     </script>
   </body>
